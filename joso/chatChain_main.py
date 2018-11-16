@@ -153,7 +153,7 @@ def parse_message_bin(messageBin):
 	messageCiphertext=messageBin[(lengthOfKeys+26):-1] #get message ciphertext
 	if VERBOSE:print('len message:',len(messageCiphertext),line_number())
 
-	print('NO_RETURN')
+	return (encryptedKeyList,plainTimestamp,messageCiphertext,numberRecipients)
 	#end parse_message_bin
 
 def decrypt_message(messageDataHexString):
@@ -162,8 +162,7 @@ def decrypt_message(messageDataHexString):
 	if VERBOSE:print('Decrypting_message',line_number())
 	messageDataBytes=binascii.unhexlify(messageDataHexString)
 	if VERBOSE:print('unhex:',messageDataBytes==MESSAGE_TEST,line_number())
-	#encryptedKeys,plaintextTimestamp,cipherText,numRecipients=
-	parse_message_bin(messageDataBytes)
+	encryptedKeys,plaintextTimestamp,cipherText,numRecipients=parse_message_bin(messageDataBytes)	
 	pass
 	#end decrypt_message
 
