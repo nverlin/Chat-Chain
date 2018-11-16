@@ -90,11 +90,13 @@ def encrypt_message(plaintextMessage,recipientsPublicKeys):
 
 	messageBytes=(timeStamp+plaintextMessage).encode('ascii') #convert string to bytes
 	cipherText=secretBox.encrypt(messageBytes) #encrypt message
+	if VERBOSE:print('len of ciphertext:',len(cipherText),line_number())
 
 	#get user's key set and encrypt secret key
 	userKeys=access_public_key_set() #retrieve public key set #should be using recipients key
 	userBox=Box(userKeys[1],userKeys[0]) #make box to encrypt secret key for sender
 	secretKeyForSenderCiphertext=userBox.encrypt(secretKey) #encrypt key for sender
+	if VERBOSE:print('Encrypted key len:',len(secretKeyForSenderCiphertext),line_number())
 
 	#get use public keys of recipients to encript secret key (need to be made into for loop for multiple recipients)
 	recipientsPublicKeys=userKeys[0] #*****should be using passed in keys #hardcoded to send self message
@@ -111,7 +113,7 @@ def encrypt_message(plaintextMessage,recipientsPublicKeys):
 def build_message_data(messageDataPlainText):
 	#begin build_message_data
 	#messageDataPlainText = (recipient,conversationID,message)
-	global VERBOSE,NUMBER_OF_RECIPIENTS #set variable to global scope
+	global VERBOSE,NUMBER_OF_RECIPIENTS,MESSAGE_TEST #set variable to global scope
 	if VERBOSE:print('Building_message_block',line_number()) #debugging output
 	recipients,conversationID,message=messageDataPlainText #seperate tuple into individual variables
 	numRecipients=bytes([NUMBER_OF_RECIPIENTS]) #make user definable later
@@ -123,36 +125,86 @@ def build_message_data(messageDataPlainText):
 	#Concat and hex massage data for sending
 	messageByteString=cipherTextkeyMsg[0]+timeStamp+cipherTextkeyMsg[1]+numRecipients
 	messageHexString=binascii.hexlify(cipherTextkeyMsg[0]+timeStamp+cipherTextkeyMsg[1]+numRecipients)
+	print('numRecipients bin added:',numRecipients,line_number())
+
+	MESSAGE_TEST=messageByteString
 
 	return messageHexString
 	#end build_message_data
 
+def parse_message_bin(messageBin):
+	#begin parse_message_bin
+	global VERBOSE
+	if VERBOSE:print('\nParsing Message',line_number())
+
+	encryptedKeyList=[]
+
+	numberRecipients=int.from_bytes(messageBin[-1:], byteorder='big') #get number of recipients form end of message data
+	if VERBOSE:print('numRecipients retrieved:',numberRecipients,type(numberRecipients),line_number()) #debug
+
+	lengthOfKeys=((numberRecipients+1)*72)
+	for x in range(0,lengthOfKeys,72):
+		encryptedKeyList.append(messageBin[x:x+72]) #take slices from messageBin to get encrypted keys
+	if VERBOSE:print('num keys found:',len(encryptedKeyList),line_number()) #debug
+
+	plainTimestamp=messageBin[lengthOfKeys:(lengthOfKeys+26)].decode() #slice out timestamp
+	if VERBOSE:print('Timestamp:',plainTimestamp)
+
+	messageCiphertext=messageBin[(lengthOfKeys+26):-1] #get message ciphertext
+	if VERBOSE:print('len message:',len(messageCiphertext),line_number())
+
+	print('NO_RETURN')
+	#end parse_message_bin
+
+def decrypt_message(messageDataHexString):
+	#begin decrypt_message
+	global VERBOSE
+	if VERBOSE:print('Decrypting_message',line_number())
+	messageDataBytes=binascii.unhexlify(messageDataHexString)
+	if VERBOSE:print('unhex:',messageDataBytes==MESSAGE_TEST,line_number())
+	#encryptedKeys,plaintextTimestamp,cipherText,numRecipients=
+	parse_message_bin(messageDataBytes)
+	pass
+	#end decrypt_message
+
+def check_messeges():
+	#begin check_messeges
+	print('check messages placeholder',line_number())
+	pass
+	#end check_messeges
+
 def get_message_info():
 	#begin get_message_info
 	global GREETING, VERBOSE #set variable to global scope
-	if VERBOSE:print('Getting_user',line_number()) #debugging output
 	print(GREETING) #print greeting banner
 	recipient=sanitize_input(input('Recipient Public Key: ')) #get recipient from user
 	if VERBOSE:print('Echo Recipient:',recipient,line_number()) #debugging output
-	conversationID=sanitize_input(input('Conversation ID: ')) #get conversation ID from user
+	conversationID=sanitize_input(input('\nConversation ID: ')) #get conversation ID from user
 	if VERBOSE:print('Echo Conversation ID:',conversationID,line_number()) #debugging output
-	message=sanitize_input(input('Message: ')) #get message from user
+	message=sanitize_input(input('\nMessage: ')) #get message from user
 	if VERBOSE:print('Echo Message: ',message,line_number()) #debugging output
+	print('')
 	return (recipient,conversationID,message) #return tuple of message attributes
 	#end get_message_info
 
 def main():
 	#begin main
 	global VERBOSE #set variable to global scope
-	user=None
 	if len(sys.argv)>1: #check for args
 		if sys.argv[1].lower()=='true': #check if detailed output desired
 			print('Starting in Debug mode',line_number())
 			VERBOSE=True
 	if VERBOSE:print('Begin ChatChain',line_number()) #debugging output
+
 	messageDataPlainText=get_message_info() #get message info from user
 	messageDataHex=build_message_data(messageDataPlainText) #build the message for writting to chain
+
 	if VERBOSE:print('\nHex:\n',messageDataHex,line_number()) #debug output
+	print('')
+
+	messageData=decrypt_message(messageDataHex)
+	print(messageData)
+
 	#end main
 
 if __name__ == '__main__':
