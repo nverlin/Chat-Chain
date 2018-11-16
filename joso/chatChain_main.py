@@ -9,9 +9,9 @@ from datetime import datetime
 import binascii
 import inspect
 '''
-# |                    bytes                        |    ciphertext     |    bytes    |
-# | rx_encrypted_key | tx_encrypted_key | timestamp | timestamp+message | #recipients |
-# |        72        |        72        |     26    |     variable      |      8      |
+# |                           bytes                              |    ciphertext     |    bytes    |
+# | rx_encrypted_key | tx_encrypted_key | tx_pub_key | timestamp | timestamp+message | #recipients |
+# |        72        |        72        |     64     |     26    |     variable      |      8      |
 
 #encrypted keys bytes = (#recipients+1) * 72       # +1 is for the sender
 
@@ -94,6 +94,8 @@ def encrypt_message(plaintextMessage,recipientsPublicKeys):
 
 	#get user's key set and encrypt secret key
 	userKeys=access_public_key_set() #retrieve public key set #should be using recipients key
+	userPudKeyHex=userKeys[0].encode(encoder=nacl.encoding.HexEncoder) #make hex byte string of senders public key
+	if VERBOSE:print('len of pub key:',userPudKeyHex,len(userPudKeyHex),type(userPudKeyHex),line_number()) #debug
 	userBox=Box(userKeys[1],userKeys[0]) #make box to encrypt secret key for sender
 	secretKeyForSenderCiphertext=userBox.encrypt(secretKey) #encrypt key for sender
 	if VERBOSE:print('Encrypted key len:',len(secretKeyForSenderCiphertext),line_number())
@@ -107,7 +109,7 @@ def encrypt_message(plaintextMessage,recipientsPublicKeys):
 
 	cipherTextkeyMsg=(allKeys,cipherText) #make tuple of keys and cipherText
 
-	return (cipherTextkeyMsg,timeStamp) #return ciphertext and timestamp
+	return (cipherTextkeyMsg,timeStamp,userPudKeyHex) #return ciphertext and timestamp
 	#end encrypt_message
 
 def build_message_data(messageDataPlainText):
@@ -118,13 +120,13 @@ def build_message_data(messageDataPlainText):
 	recipients,conversationID,message=messageDataPlainText #seperate tuple into individual variables
 	numRecipients=bytes([NUMBER_OF_RECIPIENTS]) #make user definable later
 
-	cipherTextkeyMsg,timeStamp=encrypt_message(message,recipients) #turn message into ciphertext, also creates timestamp
+	cipherTextkeyMsg,timeStamp,senderPubKey=encrypt_message(message,recipients) #turn message into ciphertext, also creates timestamp
 
 	timeStamp=timeStamp.encode('ascii')#encodes timestamp to be added in plaintext
 
 	#Concat and hex massage data for sending
-	messageByteString=cipherTextkeyMsg[0]+timeStamp+cipherTextkeyMsg[1]+numRecipients
-	messageHexString=binascii.hexlify(cipherTextkeyMsg[0]+timeStamp+cipherTextkeyMsg[1]+numRecipients)
+	messageByteString=cipherTextkeyMsg[0]+timeStamp+cipherTextkeyMsg[1]+numRecipients #debug
+	messageHexString=binascii.hexlify(cipherTextkeyMsg[0]+senderPubKey+timeStamp+cipherTextkeyMsg[1]+numRecipients)
 	print('numRecipients bin added:',numRecipients,line_number())
 
 	MESSAGE_TEST=messageByteString
@@ -139,7 +141,7 @@ def parse_message_bin(messageBin):
 
 	encryptedKeyList=[]
 
-	numberRecipients=int.from_bytes(messageBin[-1:], byteorder='big') #get number of recipients form end of message data
+	numberRecipients=int.from_bytes(messageBin[-1:],byteorder='big') #get number of recipients form end of message data
 	if VERBOSE:print('numRecipients retrieved:',numberRecipients,type(numberRecipients),line_number()) #debug
 
 	lengthOfKeys=((numberRecipients+1)*72)
@@ -147,13 +149,17 @@ def parse_message_bin(messageBin):
 		encryptedKeyList.append(messageBin[x:x+72]) #take slices from messageBin to get encrypted keys
 	if VERBOSE:print('num keys found:',len(encryptedKeyList),line_number()) #debug
 
-	plainTimestamp=messageBin[lengthOfKeys:(lengthOfKeys+26)].decode() #slice out timestamp
-	if VERBOSE:print('Timestamp:',plainTimestamp)
+	senderPublicKey=messageBin[lengthOfKeys:(lengthOfKeys+64)]
+	senderPublicKey=nacl.public.PublicKey(senderPublicKey,encoder=nacl.encoding.HexEncoder)
+	if VERBOSE:print('recovered pub key:',type(senderPublicKey),line_number())
 
-	messageCiphertext=messageBin[(lengthOfKeys+26):-1] #get message ciphertext
+	plainTimestamp=messageBin[lengthOfKeys+64:(lengthOfKeys+64+26)].decode() #slice out timestamp
+	if VERBOSE:print('Timestamp:',plainTimestamp,line_number())
+
+	messageCiphertext=messageBin[(lengthOfKeys+64+26):-1] #get message ciphertext
 	if VERBOSE:print('len message:',len(messageCiphertext),line_number())
 
-	return (encryptedKeyList,plainTimestamp,messageCiphertext,numberRecipients)
+	return (encryptedKeyList,plainTimestamp,messageCiphertext,numberRecipients,senderPublicKey)
 	#end parse_message_bin
 
 def decrypt_message(messageDataHexString):
@@ -162,7 +168,12 @@ def decrypt_message(messageDataHexString):
 	if VERBOSE:print('Decrypting_message',line_number())
 	messageDataBytes=binascii.unhexlify(messageDataHexString)
 	if VERBOSE:print('unhex:',messageDataBytes==MESSAGE_TEST,line_number())
-	encryptedKeys,plaintextTimestamp,cipherText,numRecipients=parse_message_bin(messageDataBytes)	
+	encryptedKeys,plaintextTimestamp,cipherText,numRecipients,senderPublicKey=parse_message_bin(messageDataBytes)
+
+	userPublicKey,userPrivateKey=access_public_key_set() #get user key set
+	#box for decryption
+	print('\n\n***********************\nMAKE BOX FOR DECRYPTION\n***********************\n\n',line_number())
+
 	pass
 	#end decrypt_message
 
