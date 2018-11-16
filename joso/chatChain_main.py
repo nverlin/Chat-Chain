@@ -2,8 +2,8 @@
 #invoke: python3 chatChain.py [<True>]
 
 import sys
-import nacl.utils
 from nacl.public import PrivateKey, Box
+from nacl import secret, utils
 import nacl.secret
 from datetime import datetime
 import binascii
@@ -164,22 +164,35 @@ def parse_message_bin(messageBin):
 
 def decrypt_message(messageDataHexString):
 	#begin decrypt_message
-	global VERBOSE
-	if VERBOSE:print('Decrypting_message',line_number())
-	messageDataBytes=binascii.unhexlify(messageDataHexString)
-	if VERBOSE:print('unhex:',messageDataBytes==MESSAGE_TEST,line_number())
-	encryptedKeys,plaintextTimestamp,cipherText,numRecipients,senderPublicKey=parse_message_bin(messageDataBytes)
+	global VERBOSE #set variable to global scope
+	if VERBOSE:print('Decrypting_message',line_number()) #debug
+	messageDataBytes=binascii.unhexlify(messageDataHexString) #translate message data from hex to bytes
+	if VERBOSE:print('unhex:',messageDataBytes==MESSAGE_TEST,line_number()) #debug
+	encryptedKeys,plaintextTimestamp,cipherText,numRecipients,senderPublicKey=parse_message_bin(messageDataBytes) #parse message into parts
 
 	userPublicKey,userPrivateKey=access_public_key_set() #get user key set
-	#box for decryption
-	print('\n\n***********************\nMAKE BOX FOR DECRYPTION\n***********************\n\n',line_number())
+	decryptKeyBox=Box(userPrivateKey,senderPublicKey) #box for decryption of secret key
 
-	pass
+	for each in encryptedKeys:
+		secretKey=decryptKeyBox.decrypt(each) #decrypt key
+		if VERBOSE:print('len Decrypted key:',len(secretKey),type(secretKey),line_number()) #debug
+		print('check validity of test below',line_number()) #note
+		if len(secretKey)==32: 
+			secretBox=secret.SecretBox(secretKey) #make box for 
+			plainText=secretBox.decrypt(cipherText) #get bytes of plaintext
+			decryptedTimestamp=plainText[:26].decode() #extract timestamp from plaintext
+			if VERBOSE:print('timeStamp comparison:',decryptedTimestamp==plaintextTimestamp) #debug
+			if not decryptedTimestamp==plaintextTimestamp: #test for tampering
+				print('Timestamps dont match: Tampering detected') #std out
+				pass
+			plainText=plainText[:19].decode()+'(UTC) '+plainText[26:].decode() #truncate timestamp add space
+			if VERBOSE:print('plaintext:',plainText,line_number()) #debug
+	return plainText #return plaintext from message
 	#end decrypt_message
 
 def check_messeges():
 	#begin check_messeges
-	print('check messages placeholder',line_number())
+	print('check messages placeholder',line_number()) #todo
 	pass
 	#end check_messeges
 
@@ -213,7 +226,7 @@ def main():
 	print('')
 
 	messageData=decrypt_message(messageDataHex)
-	print(messageData)
+	print(messageData,line_number())
 
 	#end main
 
