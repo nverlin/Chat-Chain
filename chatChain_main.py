@@ -1,4 +1,4 @@
-#
+# Author: Joseph Soares
 #invoke: python3 chatChain.py [<True>]
 
 import sys
