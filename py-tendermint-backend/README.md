@@ -7,7 +7,6 @@ Requires Python 3.6
 
 Recommend [PipEnv](http://docs.pipenv.org/en/latest/) for a virtualenv but not required
 ```
-git clone https://github.com/davebryson/py-tendermint-client
 cd py-tendermint-client
 pipenv --three # for a python 3 virtualenv
 pipenv install
