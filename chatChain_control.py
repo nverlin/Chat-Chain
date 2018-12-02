@@ -15,6 +15,7 @@ import time
 GREETING='Welcome to ChatChain'
 ADDRESSBOOK={}
 USER_KEYS=None
+BLOCK=None
 
 def line_number():
 	#begin line_number
@@ -25,8 +26,18 @@ def line_number():
 def send_message():
 	#begin send_message
 	messageInfo=get_message_info(ADDRESSBOOK) #return (<keys>, <conversation ID>, <message>)
+	convoID=messageInfo[1]
 	print(messageInfo,line_number())
-	messageData=build_message_data(messageInfo,USER_KEYS)
+	messageDataHexString=build_message_data(messageInfo,USER_KEYS)
+	BLOCK.broadcast_tx_commit('%s=%s'%(convoID,messageDataHexString))
+
+	#delete after
+	testhexstring1='8660147153714c5ccf692478119593162167e8c4d0151972bbfb060e10bb79c2d49d81a81f60120bd1213161e413096b44e6ca3d5ff685837679a078cc525a0cb7be01914c6674a110e243a7e6dc91462e726de8aa41e26e2f6e4b11b309c98f79dcf6fbf0467e09154eb1cea71dd949035b52d28c99af01aecacd3383ff2bf66ffd53804c3f282e28cdf212fe4eba2a84890e1504e050edb0bb96b26d9a3d62e057e8ed28201513903d9268b71f82a121c331d9c610a5b778f2d8b2eb1b4b48a6175f64fe764adc5b32e5ea05dd173422b2d1d5accd14e630343039373864383834386638356638623930333031663761383762353161386432333466393763343133393633306162646433303932363561303936383264323031382d31322d30322031383a34343a30342e30343235383781b2ff293e71003620863e4c1a8d142a8e2861a040ea934e9b8ae4c12cd2b6cdbfef4add1465019ae6e428c6e0d019f86dbfbb09359ee4c733ef96e53f945ef66d9184bc2746f287083d31686c02'
+	
+	file=open('test','r')
+	testhexstring2=file.readline().rstrip()
+	file.close()
+	print(testhexstring1==testhexstring2,line_number())
 	#endsend_message
 
 def load_addressbook(addressbookData):
@@ -103,7 +114,10 @@ def greet_user():
 
 def start_blockchain():
 	#begin start_blockchain
+	global BLOCK
 	#initialize and sync blockchain instance
+	#create instance
+	BLOCK=tendermint.Tendermint()
 	pass
 	#end start_blockchain
 

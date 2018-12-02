@@ -115,7 +115,7 @@ def build_message_data(messageDataPlainText,userKeys):
 	messageHexString=binascii.hexlify(cipherTextkeyMsg[0]+senderPubKeyHex+timeStamp+cipherTextkeyMsg[1]+numRecipients)
 	print('numRecipients bin added:',numRecipients,line_number())
 
-	return messageHexString
+	return messageHexString.decode()
 	#end build_message_data
 
 def parse_message_bin(messageBin):
