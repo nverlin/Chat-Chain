@@ -10,6 +10,8 @@
 import nacl.secret
 import nacl.utils
 import nacl.pwhash
+import nacl.public
+from nacl.encoding import Base64Encoder
 import base64
 
 
@@ -17,29 +19,29 @@ import base64
 def is_ascii(text):
     return all(ord(c) < 128 for c in text)
 
-########################################################################################################################
-# Function: store_key(key, salt)
-# Purpose: Given a key to store and the associated salt, the function will encrypt they key and store it to a file along
-#   with the salt in base64 encoding
-# Notes: Need to find a better way to combine then seperate the input and the salt...currently using a delimiter ' '
-# ######################################################################################################################
 
-def store_key(key, salt):
+def store_uname(pubKey, privKey, filename, toStore):
     try:
-        box = nacl.secret.SecretBox(key)
+        box = nacl.public.Box(privKey, pubKey)
     except TypeError as e:
-        print("Error: Key must be 32 bytes to be securely stored")
+        print("Error: In Box Creation")
         return 1
 
-    encrypted = box.encrypt(key)
+    encrypted = box.encrypt(bytes(toStore, 'ascii'))
 
-    with open('key_store.txt', 'w') as f:
+    with open(filename, 'w') as f:
         encrypted_content = base64.b64encode(encrypted).decode("ascii")
-        encrypted_salt = base64.b64encode(salt).decode("ascii")
         f.write(encrypted_content)
-        f.write(' ')
-        f.write(encrypted_salt)
+
     return 0
+
+def store_key(publick, privatek,  filename, password):
+
+    with open(filename, 'w') as f:
+        f.write(publick.encode(Base64Encoder).decode())
+        f.write(privatek.encode(Base64Encoder).decode())
+
+
 
 ########################################################################################################################
 # Function: get_key(password)
@@ -48,12 +50,10 @@ def store_key(key, salt):
 # Notes: Find a better way to seperate read key and salt
 # #####################################################################################################################
 
-def get_key(password):
-    password = bytes(password.encode('ascii'))
-    kdf = nacl.pwhash.argon2i.kdf
+def get_key(pubkey, privkey, filename):
 
-    with open('key_store.txt', 'r') as f:
-        encrypted = f.read().split(' ')
+    with open('filename', 'r') as f:
+        encrypted = f.read()
 
     salt = base64.b64decode(encrypted[1])
     encrypted = base64.b64decode(encrypted[0])
@@ -99,13 +99,13 @@ def test_suite():
 
         # Test 3: Storing a arb key and retrieving it
         key, salt = arb_keygen('go_tigers')
-        store_key(key, salt)
+        store_key(key, salt, 'key_store.txt')
         assert key == get_key('go_tigers')
         print("Test 3 Storage and Retrieval - Pass")
 
         # Test 4: Same process with different password
         key, salt = arb_keygen('password')
-        store_key(key, salt)
+        store_key(key, salt, 'key_store')
         assert key == get_key('password')
         print("Test 4 Storage and Retrieval - Pass")
 

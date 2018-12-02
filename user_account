@@ -1,0 +1,90 @@
+# Nate Verlin
+# ChatChain
+# File: user_account.py
+# Purpose: To handle a user's account and password
+
+import base64
+import store_and_sanitize
+import chatChain_main
+import nacl.pwhash
+import nacl.utils
+
+PAD = "^"
+DELIMIETER = "~"
+
+
+def save_user(username, password): # saves the username and password... might want to add salt + additional encryption here
+    original_username = username
+    original_password = password
+    padding = 20 - len(username)
+    for i in range(0, padding):
+        username += PAD
+    username += DELIMIETER
+    padding = 20 - len(password)
+    for i in range(0, padding):
+        password += PAD
+
+    publick, privatek = chatChain_main.generate_public_key_set()
+
+    store_and_sanitize.store_uname(publick, privatek, 'address_book', username+password)
+    store_and_sanitize.store_key(publick, privatek, 'key_store', original_password)
+
+
+    print("Business Card\nUsername:", original_username, "\nPublic Key: ", publick)
+
+
+def get_user():
+    pass
+
+
+
+def save_address_input():
+    with open('address_book.txt', 'w') as f:
+        pass
+
+
+def create_new_account():
+    while 1:
+        username = input("Enter your desired username (max 20 characters): ")
+        choice = input("Username is " + username + "\nConfirm (y/n):")
+        if (choice == 'y' or choice == 'Y') and len(username) < 21:
+            break
+
+    while 1:
+        password1 = input("Password(max 20 characters): ")
+        password2 = input("Confirm Password: ")
+
+        if password1 == password2 and len(password1) < 21:
+            break
+        else:
+            print("Passwords did not match please try again")
+
+    save_user(username, password1)
+
+
+def login():
+    print("Hello world")
+
+
+def menu():
+    print("Account Creation - Please enter the number of your desired option")
+    choice = input("1. Create new account\n2. Login\n:")
+
+    while 1:
+        if choice == "1":
+            create_new_account()
+            break
+        elif choice == "2":
+            login()
+            break
+        else:
+            print("Please enter a valid option")
+
+
+def main():
+    menu()
+
+
+if __name__ == "__main__":
+    main()
+
