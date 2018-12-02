@@ -69,8 +69,19 @@ class Tendermint(object):
     def block(self,height):
         return self.call('block', {'height':height})
 
+    # commit key value pair to block chain
     def commit(self, height):
         return self.call('commit', {'height':height})
 
+    # query key value pair using abci
     def query(self, path,data,prove):
         return self.call('abci_query', {'path': path, 'data':data, 'prove': prove})
+    
+    # retrieve indexed key
+    def get_message_blockchain(self, id):
+	key = "app.key='" + id + "'"
+	result = list()
+	data = tx_search(key, "true", 100, 100)
+	for element in data['result']['txs']:
+		result.append(base64.b64decode(element['tx']).split(b'=')[1])
+	return result
