@@ -5,46 +5,99 @@
 
 #imports
 from chatChain_main import *
+#from py-tendermint-bachend.tendermint.backend import *
+#tendermint=__import__('py-tendermint-backend/tendermint/backend')
+import importlib
+tendermint=importlib.import_module('py-tendermint-backend.tendermint.backend')
+import time
+
+#globals
+GREETING='Welcome to ChatChain'
+ADDRESSBOOK={}
+USER_KEYS=None
 
 def line_number():
 	#begin line_number
-	string='<ln:%i>'%inspect.currentframe().f_back.f_lineno
+	string='<%s>'%sys.argv[0]+'<ln:%i>'%inspect.currentframe().f_back.f_lineno
 	return string
 	#end line_number
 
 def send_message():
 	#begin send_message
-	pass
+	messageInfo=get_message_info(ADDRESSBOOK) #return (<keys>, <conversation ID>, <message>)
+	print(messageInfo,line_number())
+	messageData=build_message_data(messageInfo,USER_KEYS)
 	#endsend_message
 
-def authenticate_user():
-	#begin authenticate_user
-	pass
-	#end authenticate_user
+def load_addressbook(addressbookData):
+	#begin load_addressbook
+	global ADDRESSBOOK	
+
+	for datum in addressbookData:
+		datum=datum.rstrip().split(',')
+		ADDRESSBOOK[datum[1]]=nacl.public.PrivateKey(datum[0],encoder=nacl.encoding.HexEncoder).public_key
+
+	# for each in ADDRESSBOOK:
+	# 	print(each,type(ADDRESSBOOK[each]))
+	#end load_addressbook
+
+def get_user_keys(keyString):
+	#begin get_user_keys
+	keySet=nacl.public.PrivateKey(keyString,encoder=nacl.encoding.HexEncoder)
+	return (keySet.public_key,keySet)
+	#end get_user_keys
+
+def setup_user():
+	#begin setup_user
+	global USER_KEYS
+
+	#authenticate user func from Nathat, should return contents of user file
+	print('loading temp userFile',line_number())
+	file=open('userFile','r')
+	userData=file.readlines()
+	file.close()
+
+	USER_KEYS=get_user_keys(userData[0].rstrip()) #*(publKey,privKey)*
+
+	load_addressbook(userData[1:])
+	#end setup_user
 
 def main_menu():
 	#begin main_menu
+	validOptions=[]
 	while True:
-		print('\n1. Check Messages')
-		print('2. Send Message')
-		print('3. Display Contacts')
-		print('4. Edit Contacts')
+		print('\n\t1. Check Messages');validOptions.append(1)
+		print('\t2. Send Message');validOptions.append(2)
+		print('\t3. Display Contacts');validOptions.append(3)
+		print('\t4. Edit Contacts');validOptions.append(4)
 
-		print('0. Exit ChatChain\n')
+		print('\t0. Exit ChatChain\n');validOptions.append(0)
 
-		choice=int(input('Selection: '))
+		#Get selection from user with validation
+		while 1:
+			try:
+				choice=int(input('Selection: '))
+			except ValueError:
+				print('Invalid Entry')
+				continue
+
+			if choice not in validOptions:print('Invalid Entry');continue
+			break
+		
 		if choice==0:
-			print('\nThank you for using ChatChain')
+			print('\n Thank you for using ChatChain\n')
+			time.sleep(2)
 			exit()
 		elif choice==2:
 			send_message()
 
-
-	pass
 	#end main_menu
 
 def greet_user():
 	#begin greet_user
+	global GREETING #set var to global scope
+	print('\n',GREETING,'\n')
+	time.sleep(1)
 	pass
 	#end greet_user
 
@@ -58,7 +111,7 @@ def main():
 	#begin main
 	'''!!!!!SHOULD ONLY CONTAIN FUNCTION CALLS!!!!!'''
 	start_blockchain()
-	authenticate_user()
+	setup_user()
 	greet_user()
 	main_menu()
 	pass
