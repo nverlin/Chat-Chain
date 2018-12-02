@@ -2,7 +2,6 @@ import json
 import requests
 import binascii
 import types
-import base64
 
 def hex_prefix(value):
     if value[:2] == b'0x':
@@ -21,11 +20,13 @@ def to_hex(value):
     if isinstance(value, int):
         return value
 
+
 def convert_args(args):
     args = args or {}
     for k,v in args.items():
         args[k] = to_hex(v)
     return args
+
 
 class Tendermint(object):
     def __init__(self, host=None):
@@ -41,7 +42,6 @@ class Tendermint(object):
         except ValueError as e:
             print('Error parsing response: {}'.format(e))
             return {'error': e.message}
-
     def status(self):
         return self.call('status')
 
@@ -58,7 +58,7 @@ class Tendermint(object):
         return self.call('broadcast_tx_commit', {'tx': tx})
 
     def broadcast_tx_sync(self,tx):
-	    return self.call('broadcast_tx_sync', {'tx': tx})
+        return self.call('broadcast_tx_sync', {'tx': tx})
 
     def tx_search(self, query, prove, page, per_page):
         return self.call('tx_search', {'query': query, 'prove': prove, 'page': page, 'per_page': per_page})
@@ -76,6 +76,13 @@ class Tendermint(object):
     # query key value pair using abci
     def query(self, path,data,prove):
         return self.call('abci_query', {'path': path, 'data':data, 'prove': prove})
-    
+    '''
     # retrieve indexed key
-    
+    def get_message_blockchain(self, id):
+        key = "app.key='" + id + "'"
+        result = list()
+        data = tx_search(key, "true", 100, 100)
+        for element in data['result']['txs']:
+            result.append(base64.b64decode(element['tx']).split(b'=')[1])
+        return result
+'''
