@@ -2,6 +2,7 @@ import json
 import requests
 import binascii
 import types
+import base64
 
 def hex_prefix(value):
     if value[:2] == b'0x':
@@ -74,3 +75,14 @@ class Tendermint(object):
 
     def query(self, path,data,prove):
         return self.call('abci_query', {'path': path, 'data':data, 'prove': prove})
+
+    def get_message_blockchain(self, id):
+        key = "app.key='" + id + "'"
+        result = list()
+        data = self.tx_search(key, "true", 100, 100)
+
+        for element in data['result']['txs']:
+            result.append(base64.b64decode(element['tx']).split(b'=')[1])
+        
+        return result
+

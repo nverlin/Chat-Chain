@@ -5,10 +5,7 @@
 
 #imports
 from chatChain_main import *
-#from py-tendermint-bachend.tendermint.backend import *
-#tendermint=__import__('py-tendermint-backend/tendermint/backend')
-import importlib
-tendermint=importlib.import_module('py-tendermint-backend.tendermint.backend')
+from tendermint import Tendermint
 import time
 
 #globals
@@ -32,7 +29,7 @@ def send_message():
 	BLOCK.broadcast_tx_commit('%s=%s'%(convoID,messageDataHexString))
 
 	#delete after
-	testhexstring1='8660147153714c5ccf692478119593162167e8c4d0151972bbfb060e10bb79c2d49d81a81f60120bd1213161e413096b44e6ca3d5ff685837679a078cc525a0cb7be01914c6674a110e243a7e6dc91462e726de8aa41e26e2f6e4b11b309c98f79dcf6fbf0467e09154eb1cea71dd949035b52d28c99af01aecacd3383ff2bf66ffd53804c3f282e28cdf212fe4eba2a84890e1504e050edb0bb96b26d9a3d62e057e8ed28201513903d9268b71f82a121c331d9c610a5b778f2d8b2eb1b4b48a6175f64fe764adc5b32e5ea05dd173422b2d1d5accd14e630343039373864383834386638356638623930333031663761383762353161386432333466393763343133393633306162646433303932363561303936383264323031382d31322d30322031383a34343a30342e30343235383781b2ff293e71003620863e4c1a8d142a8e2861a040ea934e9b8ae4c12cd2b6cdbfef4add1465019ae6e428c6e0d019f86dbfbb09359ee4c733ef96e53f945ef66d9184bc2746f287083d31686c02'
+	testhexstring1=''
 	
 	file=open('test','r')
 	testhexstring2=file.readline().rstrip()
@@ -73,6 +70,66 @@ def setup_user():
 	load_addressbook(userData[1:])
 	#end setup_user
 
+def check_messages():
+	#begin check_messages
+	print('check messages under construction', line_number())
+	#get convoID from user
+	convoID=input('Conversation ID: ')
+	print('need to sanitize',line_number())
+
+	#query blockchain
+	messagesList=BLOCK.get_message_blockchain(convoID)
+
+	for each in messagesList:print(each)
+
+	#decrypt messages
+
+	#display results
+
+	pass
+	#end check_messages
+
+def display_contacts():
+	#begin display_contacts
+	print('display_contacts under construction',line_number())
+	#display contents of addressbook to std out
+	pass
+	#end display_contacts
+
+def edit_contacts():
+	#begin edit_contacts
+	print('edit_contacts under construction',line_number())
+	#display contacts
+	display_contacts()
+
+	#display edit contacts menu
+	validOptions=[]
+	choicesDict={1:'test'}
+	print(' Edit contacts')
+	print('\t1. Add Contact');validOptions.append(1)
+	print('\t2. Remove Contact');validOptions.append(2)
+
+
+	print('\t0. Return To Main Menu');validOptions.append(0)
+
+	#get user selection and validate
+	while True:
+		try:
+			choice=int(input(' Selection: '))
+		except ValueError:
+			print('Invalid Entry')
+			continue
+		if choice not in validOptions:print('Invalid Entry');continue
+		break
+
+	#call chosen function
+	if choice==0:
+		return
+	else:
+		pass
+	pass
+	#end edit_contacts
+
 def main_menu():
 	#begin main_menu
 	validOptions=[]
@@ -87,7 +144,7 @@ def main_menu():
 		#Get selection from user with validation
 		while 1:
 			try:
-				choice=int(input('Selection: '))
+				choice=int(input(' Selection: '))
 			except ValueError:
 				print('Invalid Entry')
 				continue
@@ -99,8 +156,14 @@ def main_menu():
 			print('\n Thank you for using ChatChain\n')
 			time.sleep(2)
 			exit()
+		elif choice==1:
+			check_messages()
 		elif choice==2:
 			send_message()
+		elif choice==3:
+			display_contacts()
+		elif choice==4:
+			edit_contacts()
 
 	#end main_menu
 
@@ -117,7 +180,7 @@ def start_blockchain():
 	global BLOCK
 	#initialize and sync blockchain instance
 	#create instance
-	BLOCK=tendermint.Tendermint()
+	BLOCK=Tendermint()
 	pass
 	#end start_blockchain
 
