@@ -47,7 +47,8 @@ def build_address_list(text):
 
 def create_new_account():
     while 1:
-        username = input("Enter your desired username (max 20 characters): ")
+        username = input("Enter your desired username (max 20 characters): ") #check for duplicate usernames
+
         choice = input("Username is " + username + "\nConfirm (y/n):")
         if (choice == 'y' or choice == 'Y') and len(username) < 21:
             break

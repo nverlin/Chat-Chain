@@ -7,6 +7,7 @@ import nacl.secret
 import nacl.utils
 import nacl.pwhash
 import nacl.public
+import nacl.encoding
 
 
 
@@ -30,7 +31,7 @@ def store_user(password, username, privateKey, address_book): # this can be call
 
     concat_address_book = ''
     for key, value in address_book.items():
-        concat_address_book += value.decode() + ',' + key + '\n'
+        concat_address_book += value.encode(encoder=nacl.encoding.HexEncoder).decode() + ',' + key + '\n'
     encrypted = box.encrypt(bytes(privateKey) + bytes(concat_address_book.encode()))
 
     with open(username, 'wb') as f:
