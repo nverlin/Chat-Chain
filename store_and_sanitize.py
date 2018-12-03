@@ -1,18 +1,13 @@
 # Nate Verlin
 # ChatChain
 # File: store_and_sanitize.py
-# This file is designed to provide some basic utility functions for the chat chain program. This includes:
-#           - Sanitizing Input (is the input valid ascii)
-#           - Storing a key securely to the disk
-#           - Retrieves the key from storage
-#           - Ability to generate keys and salts given a password
+# This file is designed to provide some basic utility functions for the chat chain program.
 
 import nacl.secret
 import nacl.utils
 import nacl.pwhash
 import nacl.public
-from nacl.encoding import Base64Encoder
-import base64
+
 
 
 # Simple function to check if a input is ascii
@@ -20,49 +15,29 @@ def is_ascii(text):
     return all(ord(c) < 128 for c in text)
 
 
-def store_uname(pubKey, privKey, filename, toStore):
+def store_user(password, username, privateKey, address_book): # this can be called a needed to update user
+    password = bytes(password.encode('ascii'))
+    kdf = nacl.pwhash.argon2i.kdf
+    salt_size = nacl.pwhash.argon2i.SALTBYTES
+    salt = nacl.utils.random(salt_size)
+    key = kdf(nacl.secret.SecretBox.KEY_SIZE, password, salt)
+
     try:
-        box = nacl.public.Box(privKey, pubKey)
+        box = nacl.secret.SecretBox(key)
     except TypeError as e:
-        print("Error: In Box Creation")
+        print("Error: Key must be 32 bytes to be securely stored")
         return 1
 
-    encrypted = box.encrypt(bytes(toStore, 'ascii'))
+    concat_address_book = ''
+    for key, value in address_book.items():
+        concat_address_book += value.decode() + ',' + key + '\n'
+    encrypted = box.encrypt(bytes(privateKey) + bytes(concat_address_book.encode()))
 
-    with open(filename, 'w') as f:
-        encrypted_content = base64.b64encode(encrypted).decode("ascii")
-        f.write(encrypted_content)
-
-    return 0
-
-def store_key(publick, privatek,  filename, password):
-
-    with open(filename, 'w') as f:
-        f.write(publick.encode(Base64Encoder).decode())
-        f.write(privatek.encode(Base64Encoder).decode())
+    with open(username, 'wb') as f:
+        f.write(salt + b'\n') # write salt then private key
+        f.write(encrypted)
 
 
-
-########################################################################################################################
-# Function: get_key(password)
-# Purpose: Given a password in string format, the function will read the previously made file decrypt it using the stored
-#   salt.
-# Notes: Find a better way to seperate read key and salt
-# #####################################################################################################################
-
-def get_key(pubkey, privkey, filename):
-
-    with open('filename', 'r') as f:
-        encrypted = f.read()
-
-    salt = base64.b64decode(encrypted[1])
-    encrypted = base64.b64decode(encrypted[0])
-
-    key = kdf(nacl.secret.SecretBox.KEY_SIZE, password, salt)
-    box = nacl.secret.SecretBox(key)
-    decryptKey = box.decrypt(encrypted)
-
-    return decryptKey
 
 
 ########################################################################################################################
@@ -91,23 +66,7 @@ def arb_keygen(password):
 
 def test_suite():
     try:
-        # Tests 1 and 2 test the is ascii function
-        assert is_ascii("Hello World") == True
-        print("Test 1 is_ascii - Pass")
-        assert is_ascii("¢£	¥§") == False
-        print("Test 2 is_ascii - Pass")
-
-        # Test 3: Storing a arb key and retrieving it
-        key, salt = arb_keygen('go_tigers')
-        store_key(key, salt, 'key_store.txt')
-        assert key == get_key('go_tigers')
-        print("Test 3 Storage and Retrieval - Pass")
-
-        # Test 4: Same process with different password
-        key, salt = arb_keygen('password')
-        store_key(key, salt, 'key_store')
-        assert key == get_key('password')
-        print("Test 4 Storage and Retrieval - Pass")
+        print("Removed Test Suite")
 
     except Exception as e:
         print(e)
