@@ -162,12 +162,12 @@ def decrypt_message(messageDataHexString,userKeySet):
 		try:
 			secretKey=decryptKeyBox.decrypt(each) #decrypt key
 			notAuthorized=False
-			print('good key',line_number())
+			#print('good key',line_number())
 		except:
-			print('bad key',line_number())
+			#print('bad key',line_number())
 			continue
 		if VERBOSE:print('len Decrypted key:',len(secretKey),type(secretKey),line_number()) #debug
-		print('check validity of test below',line_number()) #note
+		#print('check validity of test below',line_number()) #note
 		if len(secretKey)==32: 
 			secretBox=secret.SecretBox(secretKey) #make box for 
 			plainText=secretBox.decrypt(cipherText) #get bytes of plaintext
@@ -178,8 +178,7 @@ def decrypt_message(messageDataHexString,userKeySet):
 				pass
 			plainText=plainText[:19].decode()+'(UTC) '+plainText[26:].decode() #truncate timestamp add space
 			if VERBOSE:print('plaintext:',plainText,line_number()) #debug
-	if notAuthorized:plainText=plaintextTimestamp[:19]+'(UTC) Not Authorized to decrypt.'
-	plainText=plaintextTimestamp[:19]+'(UTC) Not Authorized to decrypt.'
+	if notAuthorized:plainText=''
 	return plainText #return plaintext from message
 	#end decrypt_message
 

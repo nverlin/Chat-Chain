@@ -72,7 +72,6 @@ def setup_user():
 
 def check_messages():
 	#begin check_messages
-	print('check messages under construction', line_number())
 	#get convoID from user
 	convoID=input('Conversation ID: ')
 	print('need to sanitize',line_number())
@@ -80,13 +79,12 @@ def check_messages():
 	#query blockchain
 	messagesList=BLOCK.get_message_blockchain(convoID)
 
-	for each in messagesList:print(each)
+	print('***for tessting only***',line_number())
+	messagesList=messagesList[1:]
 
-	#decrypt messages
-
-	#display results
-
-	pass
+	#decrypt and display messages
+	for message in messagesList:
+		print(decrypt_message(message,USER_KEYS))
 	#end check_messages
 
 def display_contacts():
