@@ -3,7 +3,6 @@
 # File: user_account.py.py
 # Purpose: To handle a user's account and password
 
-import base64
 import os
 import store_and_sanitize
 import chatChain_main
@@ -129,12 +128,13 @@ def menu():
         choice = input("1. Create new account\n2. Login\n:")
         if choice == "1":
             create_new_account()
-            break
         elif choice == "2":
-            login()
+            user_list = login()
             break
         else:
             print("Please enter a valid option")
+
+    return user_list
 
 
 def main():
