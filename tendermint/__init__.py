@@ -89,6 +89,7 @@ class Tendermint(object):
             result.append(base64.b64decode(element['tx']).split(b'=')[1])
         
         return result
+
      # Check if node has to catch up to other nodes, False means it has to catch up or other node is down.
      def get_status(self):
         data = self.status()
