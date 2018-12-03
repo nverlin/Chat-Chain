@@ -18,7 +18,7 @@ LOGINCOUNT = 12
 
 def save_user(username, password, address_book):
 
-    publick, privatek = chatChain_main.generate_public_key_set() #inital private and public key gen
+    publick, privatek = chatChain_main.generate_public_key_set()  # inital private and public key gen
 
     address_book[username] = publick
 
@@ -113,10 +113,10 @@ def login():
             return 1
 
     privateKey = decrypted_text[:32]
-
+    
     user_list.append(privateKey.hex())
 
-    address_book_list = build_address_list(decrypted_text[33:])
+    address_book_list = build_address_list(decrypted_text[32:])
 
     for i in address_book_list:
         user_list.append(i)
