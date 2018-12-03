@@ -61,6 +61,7 @@ class Tendermint(object):
     def broadcast_tx_sync(self,tx):
 	    return self.call('broadcast_tx_sync', {'tx': tx})
 
+    # Search indexed key value pair, indexing must be on
     def tx_search(self, query, prove, page, per_page):
         return self.call('tx_search', {'query': query, 'prove': prove, 'page': page, 'per_page': per_page})
 
@@ -69,13 +70,16 @@ class Tendermint(object):
 
     def block(self,height):
         return self.call('block', {'height':height})
-
+    
+    # Commit key value pair to blockchain
     def commit(self, height):
         return self.call('commit', {'height':height})
-
+    
+    # Query key value pair using abci will only return latest commit
     def query(self, path,data,prove):
         return self.call('abci_query', {'path': path, 'data':data, 'prove': prove})
 
+    # Get message by id, requires that index is on
     def get_message_blockchain(self, id):
         key = "app.key='" + id + "'"
         result = list()
@@ -85,7 +89,7 @@ class Tendermint(object):
             result.append(base64.b64decode(element['tx']).split(b'=')[1])
         
         return result
-
+     # Check if node has to catch up to other nodes, False means it has to catch up or other node is down.
      def get_status(self):
         data = self.status()
         result = data['result']['sync_info']['catching_up']
