@@ -91,12 +91,12 @@ class Tendermint(object):
         return result
 
      # Check if node has to catch up to other nodes, False means it has to catch up or other node is down.
-     def get_status(self):
-        data = self.status()
-        result = data['result']['sync_info']['catching_up']
-        if result == 'False':
-            return False
-        else:
-            return True
+    def get_status(self):
+       data = self.status()
+       result = data['result']['sync_info']['catching_up']
+       if result == 'False':
+           return False
+       else:
+           return True
 
 

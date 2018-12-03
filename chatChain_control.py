@@ -7,6 +7,8 @@
 from chatChain_main import *
 from tendermint import Tendermint
 import time
+from user_account import *
+from store_and_sanitize import *
 
 #globals
 GREETING='Welcome to ChatChain'
@@ -41,12 +43,13 @@ def load_addressbook(addressbookData):
 	#begin load_addressbook
 	global ADDRESSBOOK	
 
+	print(len(addressbookData),addressbookData)
+
 	for datum in addressbookData:
 		datum=datum.rstrip().split(',')
-		ADDRESSBOOK[datum[1]]=nacl.public.PrivateKey(datum[0],encoder=nacl.encoding.HexEncoder).public_key
+		print('length:',len(datum[0]))
 
-	# for each in ADDRESSBOOK:
-	# 	print(each,type(ADDRESSBOOK[each]))
+		ADDRESSBOOK[datum[1]]=nacl.public.PublicKey(datum[0],encoder=nacl.encoding.HexEncoder)
 	#end load_addressbook
 
 def get_user_keys(keyString):
@@ -59,13 +62,17 @@ def setup_user():
 	#begin setup_user
 	global USER_KEYS
 
-	#authenticate user func from Nathat, should return contents of user file
+	#authenticate user func from Nathan, should return contents of user file
+	userData=menu()
+	'''
 	print('loading temp userFile',line_number())
 	file=open('userFile','r')
 	userData=file.readlines()
 	file.close()
-
+	'''
 	USER_KEYS=get_user_keys(userData[0].rstrip()) #*(publKey,privKey)*
+
+	print(len(userData),userData,line_number())
 
 	load_addressbook(userData[1:])
 	#end setup_user
@@ -89,9 +96,14 @@ def check_messages():
 
 def display_contacts():
 	#begin display_contacts
+	global ADDRESSBOOK
 	print('display_contacts under construction',line_number())
 	#display contents of addressbook to std out
-	pass
+
+	count=1
+	for user in ADDRESSBOOK:
+		print('%i. %s'%(count,user))
+
 	#end display_contacts
 
 def edit_contacts():
