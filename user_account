@@ -60,7 +60,7 @@ def create_new_account():
         else:
             print("Passwords did not match please try again")
 
-    save_user(username, password1, {'joe': 'a40bf496f0945cc1eaf11e00d11cefa434585ed181e8645046eaa8fc75030fc5'.encode(), 'nate': 'a40bf496f0945cc1eaf11e00d11cefa434585ed181e8645046eaa8fc75030fc5'.encode()})
+    save_user(username, password1, {})
 
 
 def login():
