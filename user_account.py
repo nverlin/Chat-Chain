@@ -1,6 +1,6 @@
 # Nate Verlin
 # ChatChain
-# File: user_account.py
+# File: user_account.py.py
 # Purpose: To handle a user's account and password
 
 import base64
