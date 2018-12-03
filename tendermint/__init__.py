@@ -79,7 +79,7 @@ class Tendermint(object):
     def get_message_blockchain(self, id):
         key = "app.key='" + id + "'"
         result = list()
-        data = tx_search(key, "true", 100, 100)
+        data = self.tx_search(key, "true", 100, 100)
 
         for element in data['result']['txs']:
             result.append(base64.b64decode(element['tx']).split(b'=')[1])

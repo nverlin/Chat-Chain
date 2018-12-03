@@ -5,10 +5,7 @@
 
 #imports
 from chatChain_main import *
-#from py-tendermint-bachend.tendermint.backend import *
-#tendermint=__import__('py-tendermint-backend/tendermint/backend')
-import importlib
-tendermint=importlib.import_module('py-tendermint-backend.tendermint.backend')
+from tendermint import Tendermint
 import time
 
 #globals
@@ -183,7 +180,7 @@ def start_blockchain():
 	global BLOCK
 	#initialize and sync blockchain instance
 	#create instance
-	BLOCK=tendermint.Tendermint()
+	BLOCK=Tendermint()
 	pass
 	#end start_blockchain
 
