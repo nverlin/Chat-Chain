@@ -2,7 +2,6 @@ import json
 import requests
 import binascii
 import types
-import base64
 
 def hex_prefix(value):
     if value[:2] == b'0x':
@@ -76,6 +75,4 @@ class Tendermint(object):
     # query key value pair using abci
     def query(self, path,data,prove):
         return self.call('abci_query', {'path': path, 'data':data, 'prove': prove})
-    
-    # retrieve indexed key
     
