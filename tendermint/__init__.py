@@ -85,6 +85,7 @@ class Tendermint(object):
             result.append(base64.b64decode(element['tx']).split(b'=')[1])
         
         return result
+
      def get_status(self):
         data = self.status()
         result = data['result']['sync_info']['catching_up']
