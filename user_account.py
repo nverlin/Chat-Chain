@@ -20,6 +20,8 @@ def save_user(username, password, address_book):
 
     publick, privatek = chatChain_main.generate_public_key_set() #inital private and public key gen
 
+    address_book[username] = publick
+
     store_and_sanitize.store_user(password, username, privatek, address_book)
 
     print("Business Card(saved on desktop)\nUsername:", username, "\nPublic Key: ", publick.encode(nacl.encoding.HexEncoder).decode())
@@ -33,12 +35,12 @@ def save_user(username, password, address_book):
 
 def build_address_list(text):
     address_list = []
-    print(text)
+    # print(text)
     if text is None:
         return address_list
     else:
         split_text = text.decode().split('\n')
-        print(split_text[:-1])
+        # print(split_text[:-1])
         address_list = split_text[:-1]
         return address_list
 
