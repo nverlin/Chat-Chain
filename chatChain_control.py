@@ -3,18 +3,22 @@
 # purpose: contains main control loop for program
 # invoke: python3 chatChain_control.py
 
+#print('\033[H\033[J') #clear console
+
 #imports
 from chatChain_main import *
 from tendermint import Tendermint
 import time
 from user_account import *
 from store_and_sanitize import *
+from sys import argv
 
 #globals
 GREETING='Welcome to ChatChain'
 ADDRESSBOOK={}
 USER_KEYS=None
 BLOCK=None
+DEBUG=False
 
 def line_number():
 	#begin line_number
@@ -43,7 +47,7 @@ def load_addressbook(addressbookData):
 	#begin load_addressbook
 	global ADDRESSBOOK	
 
-	print(len(addressbookData),addressbookData)
+	#print(len(addressbookData),addressbookData,line_number())
 
 	for datum in addressbookData:
 		datum=datum.rstrip().split(',')
@@ -97,47 +101,102 @@ def check_messages():
 def display_contacts():
 	#begin display_contacts
 	global ADDRESSBOOK
-	print('display_contacts under construction',line_number())
 	#display contents of addressbook to std out
-
 	count=1
+	print('\n Contacts')
 	for user in ADDRESSBOOK:
-		print('%i. %s'%(count,user))
-
+		print('\t%i. %s'%(count,user))
+	print('')
 	#end display_contacts
+
+def add_contact():
+	#begin add_contact
+	print('add_contact under construction',line_number())
+	while True:
+		print('need to sanitize',line_number())
+		filePath=input('Path to contact card: ')
+		#filePath='/home/chain/Desktop/bob.card'
+		try:
+			file=open(filePath,'r')
+		except IOError:
+			print('Bad file path')
+			continue
+		break
+	splitPath=filePath.split('/')
+
+	contactName=splitPath[-1][:-5]
+
+	if DEBUG:
+		for x in range(len(splitPath)):
+			print('[%i] %s'%(x,splitPath[x]))
+
+	if DEBUG:print('contactName:',contactName)
+
+
+	hexPubKey=file.readline().rstrip()
+	pubKey=nacl.public.PublicKey(hexPubKey,encoder=nacl.encoding.HexEncoder)
+	#if DEBUG:print(type(pubKey),line_number())
+	ADDRESSBOOK[contactName]=pubKey
+	file.close()
+	#end add_contact
+
+def remove_contact():
+	#begin remove_contact
+	print('remove_contact under construction',line_number())
+	#end remove_contact
+
+def update_user_file():
+	#begn update_user_file
+	print('update_user_file under construction')
+	pass
+	#end update_user_file
 
 def edit_contacts():
 	#begin edit_contacts
 	print('edit_contacts under construction',line_number())
-	#display contacts
-	display_contacts()
 
-	#display edit contacts menu
-	validOptions=[]
-	choicesDict={1:'test'}
-	print(' Edit contacts')
-	print('\t1. Add Contact');validOptions.append(1)
-	print('\t2. Remove Contact');validOptions.append(2)
-
-
-	print('\t0. Return To Main Menu');validOptions.append(0)
-
-	#get user selection and validate
 	while True:
-		try:
-			choice=int(input(' Selection: '))
-		except ValueError:
-			print('Invalid Entry')
-			continue
-		if choice not in validOptions:print('Invalid Entry');continue
-		break
+		#print('\033[H\033[J')
+		#display contacts
+		display_contacts()
 
-	#call chosen function
-	if choice==0:
-		return
-	else:
-		pass
-	pass
+		#display edit contacts menu
+		validOptions=[]
+		choicesDict={1:'test'}
+		print(' Edit contacts')
+		print('\t1. Add Contact');validOptions.append(1)
+		print('\t2. Remove Contact');validOptions.append(2)
+
+		print('\t0. Return To Main Menu');validOptions.append(0)
+
+		#get user selection and validate
+		while True:
+			try:
+				choice=int(input('\n Selection: '))
+			except ValueError:
+				print('Invalid Entry')
+				continue
+			if choice not in validOptions:print('Invalid Entry');continue
+			break
+
+		#call chosen function
+		if choice==0:
+			while True:
+				save=input('Save changes? [y/n]: ')
+				if save.lower()=='y' or save.lower()=='yes':
+					update_user_file()
+					break
+				elif save.lower()=='n' or save.lower()=='no':
+					break
+				else:
+					save=None
+			return
+		elif choice==1:
+			add_contact()
+		elif choice==2:
+			remove_contact()
+
+			pass
 	#end edit_contacts
 
 def main_menu():
@@ -165,7 +224,7 @@ def main_menu():
 		if choice==0:
 			print('\n Thank you for using ChatChain\n')
 			time.sleep(2)
-			exit()
+			graceful_exit()
 		elif choice==1:
 			check_messages()
 		elif choice==2:
@@ -174,7 +233,6 @@ def main_menu():
 			display_contacts()
 		elif choice==4:
 			edit_contacts()
-
 	#end main_menu
 
 def greet_user():
@@ -196,6 +254,8 @@ def start_blockchain():
 
 def main():
 	#begin main
+	global DEBUG
+	if argv[1].lower()=='debug': DEBUG=True
 	'''!!!!!SHOULD ONLY CONTAIN FUNCTION CALLS!!!!!'''
 	start_blockchain()
 	setup_user()
@@ -204,5 +264,18 @@ def main():
 	pass
 	#end main
 
+def graceful_exit():
+	#begin graceful_exit
+	print('uncomment error handling',line_number())
+	exit()
+	#end graceful_exit
+
 if __name__ == '__main__':
 	main()
+	graceful_exit()
+	'''
+	try:
+		main()
+	except:
+		print('implement graceful shutdown')
+	'''
