@@ -47,7 +47,7 @@ def send_message():
 	#begin send_message
 	messageInfo=get_message_info(ADDRESSBOOK) #return (<keys>, <conversation ID>, <message>)
 	convoID=messageInfo[1]
-	print(messageInfo,line_number())
+	if DEBUG:print(messageInfo,line_number())
 	messageDataHexString=build_message_data(messageInfo,USER_KEYS)
 	BLOCK.broadcast_tx_commit('%s=%s'%(convoID,messageDataHexString))
 
@@ -104,12 +104,12 @@ def check_messages():
 	#begin check_messages
 	#get convoID from user
 	convoID=input('Conversation ID: ')
-	print('need to sanitize',line_number())
+	if DEBUG:print('need to sanitize',line_number())
 
 	#query blockchain
 	messagesList=BLOCK.get_message_blockchain(convoID)
 
-	print('***for tessting only***',line_number())
+	if DEBUG:print('***for tessting only***',line_number())
 	messagesList=messagesList[1:]
 
 	#decrypt and display messages
@@ -167,7 +167,7 @@ def add_contact():
 
 def remove_contact():
 	#begin remove_contact
-	print('remove_contact under construction',line_number())
+	if DEBUG:print('remove_contact under construction',line_number())
 	global ADDRESSBOOK
 	validDict={}
 	index=1
@@ -181,8 +181,8 @@ def remove_contact():
 
 def update_user_file():
 	#begn update_user_file
-	print('update_user_file under construction')
-	pass
+	print('update_user_file under construction\nneeds sanitize')
+	store_user(input('Username: '),input('Password: '),USER_KEYS[1],ADDRESSBOOK)
 	#end update_user_file
 
 def edit_contacts():
@@ -238,7 +238,6 @@ def main_menu():
 	validOptions=[]
 	while True:
 		if not DEBUG:print('\033[H\033[J')
-		if not DEBUG:print('screen cleat blows out message print')
 		print('\n\t1. Check Messages');validOptions.append(1)
 		print('\t2. Send Message');validOptions.append(2)
 		print('\t3. Display Contacts');validOptions.append(3)
@@ -298,21 +297,23 @@ def main():
 	setup_user()
 	greet_user()
 	main_menu()
-	pass
+	graceful_exit()
 	#end main
 
 def graceful_exit():
 	#begin graceful_exit
-	print('uncomment error handling',line_number())
+	if DEBUG:print('uncomment error handling',line_number())
+	if not DEBUG:print('\033[H\033[J')
 	exit()
 	#end graceful_exit
 
 if __name__ == '__main__':
-	main()
-	graceful_exit()
-	'''
 	try:
 		main()
+	except KeyboardInterrupt:
+		print('User Shutdown')
+		graceful_exit()
+'''
 	except:
-		print('implement graceful shutdown')
-	'''
+		graceful_exit()
+'''

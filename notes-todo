@@ -30,9 +30,8 @@ nathan:
 		UnboundLocalError: local variable 'decrypted_text' referenced before assignment
 
 joso:
-	romove various debug output
 	remove debug mode
-	implement screen clearing
+	screen clear wipes out display contacts
 
 mihn:
 	3 nodes sync

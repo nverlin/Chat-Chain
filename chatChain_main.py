@@ -113,7 +113,7 @@ def build_message_data(messageDataPlainText,userKeys):
 
 	#Concat and hex message data for sending
 	messageHexString=binascii.hexlify(cipherTextkeyMsg[0]+senderPubKeyHex+timeStamp+cipherTextkeyMsg[1]+numRecipients)
-	print('numRecipients bin added:',numRecipients,line_number())
+	#print('numRecipients bin added:',numRecipients,line_number())
 
 	return messageHexString.decode()
 	#end build_message_data
