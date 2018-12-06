@@ -13,7 +13,7 @@ from nacl.encoding import Base64Encoder
 
 PAD = "^"
 DELIMIETER = "~"
-LOGINCOUNT = 12
+LOGINCOUNT = 10
 
 
 def save_user(username, password, address_book):
@@ -48,19 +48,25 @@ def build_address_list(text):
 def create_new_account():
     while 1:
         username = input("Enter your desired username (max 20 characters): ") #check for duplicate usernames
+        # print("Username is " + username)
 
-        choice = input("Username is " + username + "\nConfirm (y/n):")
-        if (choice == 'y' or choice == 'Y') and len(username) < 21:
-            break
+        if len(username) < 21:                # username cannot be longer than 20 chars
+            exists = os.path.isfile(username) #using os functions to check if user account already exists
+            if exists:
+                print("This username is already being used on this machine")
+            else:
+                break
+        else:
+            print('Username is too long. Please enter another')
 
     while 1:
         password1 = input("Password(min 10 characters, max 20 characters): ")
         password2 = input("Confirm Password: ")
 
-        if password1 == password2 and len(password1) < 21:
+        if password1 == password2 and len(password1) < 21 and len(password1) > 9:
             break
         else:
-            print("Passwords did not match please try again")
+            print("Passwords either do not match or parameters are not met")
 
     save_user(username, password1, {})
 
@@ -71,6 +77,7 @@ def login():
     login_counter = 0
 
     while 1:
+        flag = 0
         if login_counter < LOGINCOUNT:
             input_username = input("Username: ")
             input_password = input("Password: ")
@@ -104,10 +111,13 @@ def login():
 
             try:
                 decrypted_text = box.decrypt(cipher)
+                flag = 1
             except:
                 print("Incorrect username or password. Try again")
                 login_counter += 1
-            break
+                continue
+            if flag == 1:
+                break
         else:
             print("Too many failed login attempts...Exiting Chat-Chain")
             return 1

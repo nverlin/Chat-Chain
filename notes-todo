@@ -2,32 +2,13 @@
 !! erase after complete
 
 nathan:
-	remove debug output at login
-	obscure password
-	enable pass reqs
-	login limiting
+	obscure password - not sure what you mean by this. Password is limited to 20 characters
+	login limiting - done. unless there are any other limits we would like to impose. current limit is 10
 	new function verify_user() (maybe decrypts userfile but doesnt use it)
-	hanlde Error: (bad password, and after saving user)
-		chain@jchain:~/chatchain/Chat-Chain$ python3 chatChain_control.py debug
-		Account Creation - Please enter the number of your desired option
-		1. Create new account
-		2. Login
-		:2
-		Username: joso
-		Password: shit
-		Incorrect username or password. Try again
-		Traceback (most recent call last):
-		  File "chatChain_control.py", line 311, in <module>
-		    main()
-		  File "chatChain_control.py", line 298, in main
-		    setup_user()
-		  File "chatChain_control.py", line 87, in setup_user
-		    userData=menu()
-		  File "/home/chain/chatchain/Chat-Chain/user_account.py", line 135, in menu
-		    user_list = login()
-		  File "/home/chain/chatchain/Chat-Chain/user_account.py", line 115, in login
-		    privateKey = decrypted_text[:32]
-		UnboundLocalError: local variable 'decrypted_text' referenced before assignment
+	hanlde Error: (bad password, and after saving user) - should be fixed will test to confirm on linux shortly. Uses
+	the oc commands to check if the user file exists already
+
+	Do we want to display the business card in the console as well or just say it was saved. (Currently displays in console)
 
 joso:
 	remove debug mode
