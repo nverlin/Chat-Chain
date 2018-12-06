@@ -1,0 +1,15 @@
+!! pull befor editing
+!! erase after complete
+
+nathan:
+	remove debug output at login
+	obscure password
+	enable pass reqs
+
+joso:
+	romove various debug output
+	remove debug mode
+	implement screen clearing
+
+mihn:
+	3 nodes sync

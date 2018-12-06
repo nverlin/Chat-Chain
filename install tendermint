@@ -1,0 +1,20 @@
+install curl
+install git
+install golang
+	append to /etc/profile
+		export PATH=$PATH:/usr/local/go/bin
+		export GOPATH=$HOME/go
+		export PATH=$PATH:$GOPATH/bin
+
+Get Source Code
+	mkdir -p $GOPATH/src/github.com/tendermint
+	cd $GOPATH/src/github.com/tendermint
+	git clone https://github.com/tendermint/tendermint.git
+	cd tendermint
+
+Get Tools & Dependencies
+	make get_tools
+	make get_vendor_deps
+
+Compile
+	make install
