@@ -53,12 +53,14 @@ def send_message():
 	BLOCK.broadcast_tx_commit('%s=%s'%(convoID,messageDataHexString))
 
 	#delete after
+	'''
 	testhexstring1=''
 	
 	file=open('test','r')
 	testhexstring2=file.readline().rstrip()
 	file.close()
 	print(testhexstring1==testhexstring2,line_number())
+	'''
 	#endsend_message
 
 def load_addressbook(addressbookData):
@@ -69,7 +71,7 @@ def load_addressbook(addressbookData):
 
 	for datum in addressbookData:
 		datum=datum.rstrip().split(',')
-		print('length:',len(datum[0]))
+		#print('length:',len(datum[0]))
 
 		ADDRESSBOOK[datum[1]]=nacl.public.PublicKey(datum[0],encoder=nacl.encoding.HexEncoder)
 	#end load_addressbook
@@ -109,13 +111,14 @@ def check_messages():
 
 	#query blockchain
 	messagesList=BLOCK.get_message_blockchain(convoID)
+	if DEBUG:print(messagesList,line_number())
 
 	if DEBUG:print('***for tessting only***',line_number())
-	messagesList=messagesList[1:]
+	#messagesList=messagesList[1:]
 
 	#decrypt and display messages
 	for message in messagesList:
-		print(decrypt_message(message,USER_KEYS))
+		print(decrypt_message(message,USER_KEYS,DEBUG))
 
 	while True:
 		choice=input('Finished? [y/n]: ')
@@ -182,7 +185,7 @@ def remove_contact():
 
 def update_user_file():
 	#begn update_user_file
-	if DEBUG:print('update_user_file under construction\nneeds sanitize',line_number())
+	if DEBUG:print('update_user_file under construction',line_number())
 	username=input('Username: ')
 	password=input('Password: ')
 

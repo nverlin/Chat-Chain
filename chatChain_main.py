@@ -146,12 +146,13 @@ def parse_message_bin(messageBin):
 	return (encryptedKeyList,plainTimestamp,messageCiphertext,numberRecipients,senderPublicKey)
 	#end parse_message_bin
 
-def decrypt_message(messageDataHexString,userKeySet):
+def decrypt_message(messageDataHexString,userKeySet,debug):
 	#begin decrypt_message
+	print('***************************************************************************************************',line_number())
 	global VERBOSE #set variable to global scope
-	if VERBOSE:print('Decrypting_message',line_number()) #debug
+	if debug:print('Decrypting_message',line_number()) #debug
 	messageDataBytes=binascii.unhexlify(messageDataHexString) #translate message data from hex to bytes
-	if VERBOSE:print('unhex:',messageDataBytes==MESSAGE_TEST,line_number()) #debug
+	#if debug:print('unhex:',messageDataBytes==MESSAGE_TEST,line_number()) #debug
 	encryptedKeys,plaintextTimestamp,cipherText,numRecipients,senderPublicKey=parse_message_bin(messageDataBytes) #parse message into parts
 
 	userPublicKey,userPrivateKey=userKeySet #get user key set
@@ -162,22 +163,22 @@ def decrypt_message(messageDataHexString,userKeySet):
 		try:
 			secretKey=decryptKeyBox.decrypt(each) #decrypt key
 			notAuthorized=False
-			#print('good key',line_number())
+			print('good key',line_number())
 		except:
-			#print('bad key',line_number())
+			print('bad key',line_number())
 			continue
-		if VERBOSE:print('len Decrypted key:',len(secretKey),type(secretKey),line_number()) #debug
+		if debug:print('len Decrypted key:',len(secretKey),type(secretKey),line_number()) #debug
 		#print('check validity of test below',line_number()) #note
 		if len(secretKey)==32: 
 			secretBox=secret.SecretBox(secretKey) #make box for 
 			plainText=secretBox.decrypt(cipherText) #get bytes of plaintext
 			decryptedTimestamp=plainText[:26].decode() #extract timestamp from plaintext
-			if VERBOSE:print('timeStamp comparison:',decryptedTimestamp==plaintextTimestamp) #debug
+			if debug:print('timeStamp comparison:',decryptedTimestamp==plaintextTimestamp) #debug
 			if not decryptedTimestamp==plaintextTimestamp: #test for tampering
 				print('Timestamps dont match: Tampering detected') #std out
 				pass
 			plainText=plainText[:19].decode()+'(UTC) '+plainText[26:].decode() #truncate timestamp add space
-			if VERBOSE:print('plaintext:',plainText,line_number()) #debug
+			if debug:print('plaintext:',plainText,line_number()) #debug
 	if notAuthorized:plainText=''
 	return plainText #return plaintext from message
 	#end decrypt_message
