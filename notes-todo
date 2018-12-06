@@ -5,6 +5,29 @@ nathan:
 	remove debug output at login
 	obscure password
 	enable pass reqs
+	login limiting
+	new function verify_user() (maybe decrypts userfile but doesnt use it)
+	hanlde Error:
+		chain@jchain:~/chatchain/Chat-Chain$ python3 chatChain_control.py debug
+		Account Creation - Please enter the number of your desired option
+		1. Create new account
+		2. Login
+		:2
+		Username: joso
+		Password: shit
+		Incorrect username or password. Try again
+		Traceback (most recent call last):
+		  File "chatChain_control.py", line 311, in <module>
+		    main()
+		  File "chatChain_control.py", line 298, in main
+		    setup_user()
+		  File "chatChain_control.py", line 87, in setup_user
+		    userData=menu()
+		  File "/home/chain/chatchain/Chat-Chain/user_account.py", line 135, in menu
+		    user_list = login()
+		  File "/home/chain/chatchain/Chat-Chain/user_account.py", line 115, in login
+		    privateKey = decrypted_text[:32]
+		UnboundLocalError: local variable 'decrypted_text' referenced before assignment
 
 joso:
 	romove various debug output
