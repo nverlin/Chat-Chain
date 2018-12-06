@@ -4,7 +4,7 @@
 nathan:
 	obscure password - not sure what you mean by this. Password is limited to 20 characters
 	login limiting - done. unless there are any other limits we would like to impose. current limit is 10
-	new function verify_user() (maybe decrypts userfile but doesnt use it)
+	new function verify_user() - simply check if file exists in login process
 	hanlde Error: (bad password, and after saving user) - should be fixed will test to confirm on linux shortly. Uses
 	the oc commands to check if the user file exists already
 
