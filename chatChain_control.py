@@ -8,7 +8,7 @@
 #imports
 from chatChain_main import *
 from tendermint import Tendermint
-import time
+from time import sleep
 from user_account import *
 from store_and_sanitize import *
 from sys import argv
@@ -19,6 +19,7 @@ ADDRESSBOOK={}
 USER_KEYS=None
 BLOCK=None
 DEBUG=False
+SKIP_CLEAR=False
 
 def line_number():
 	#begin line_number
@@ -138,7 +139,7 @@ def add_contact():
 	#begin add_contact
 	#print('add_contact under construction',line_number())
 	while True:
-		print('need to sanitize',line_number())
+		if DEBUG:print('need to sanitize',line_number())
 		filePath=input('Path to contact card: ')
 		#filePath='/home/chain/Desktop/bob.card'
 		try:
@@ -181,8 +182,11 @@ def remove_contact():
 
 def update_user_file():
 	#begn update_user_file
-	print('update_user_file under construction\nneeds sanitize')
-	store_user(input('Username: '),input('Password: '),USER_KEYS[1],ADDRESSBOOK)
+	if DEBUG:print('update_user_file under construction\nneeds sanitize',line_number())
+	username=input('Username: ')
+	password=input('Password: ')
+
+	store_user(password,username,USER_KEYS[1],ADDRESSBOOK)
 	#end update_user_file
 
 def edit_contacts():
@@ -234,10 +238,10 @@ def edit_contacts():
 
 def main_menu():
 	#begin main_menu
-	global ADDRESSBOOK
+	global ADDRESSBOOK, SKIP_CLEAR
 	validOptions=[]
 	while True:
-		if not DEBUG:print('\033[H\033[J')
+		if not DEBUG and not SKIP_CLEAR:print('\033[H\033[J');SKIP_CLEAR=False
 		print('\n\t1. Check Messages');validOptions.append(1)
 		print('\t2. Send Message');validOptions.append(2)
 		print('\t3. Display Contacts');validOptions.append(3)
@@ -258,7 +262,7 @@ def main_menu():
 		
 		if choice==0:
 			print('\n Thank you for using ChatChain\n')
-			time.sleep(2)
+			sleep(2)
 			graceful_exit()
 		elif choice==1:
 			check_messages()
@@ -266,6 +270,7 @@ def main_menu():
 			send_message()
 		elif choice==3:
 			display_contacts(ADDRESSBOOK)
+			SKIP_CLEAR=True
 		elif choice==4:
 			edit_contacts()
 	#end main_menu
@@ -273,9 +278,8 @@ def main_menu():
 def greet_user():
 	#begin greet_user
 	global GREETING #set var to global scope
-	print('\n',GREETING,'\n')
-	time.sleep(1)
-	pass
+	print('\n',GREETING)
+	sleep(1)
 	#end greet_user
 
 def start_blockchain():
@@ -312,6 +316,7 @@ if __name__ == '__main__':
 		main()
 	except KeyboardInterrupt:
 		print('User Shutdown')
+		sleep(3)
 		graceful_exit()
 '''
 	except:

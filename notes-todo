@@ -7,7 +7,7 @@ nathan:
 	enable pass reqs
 	login limiting
 	new function verify_user() (maybe decrypts userfile but doesnt use it)
-	hanlde Error:
+	hanlde Error: (bad password, and after saving user)
 		chain@jchain:~/chatchain/Chat-Chain$ python3 chatChain_control.py debug
 		Account Creation - Please enter the number of your desired option
 		1. Create new account
