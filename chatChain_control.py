@@ -26,6 +26,23 @@ def line_number():
 	return string
 	#end line_number
 
+def get_valid_int(validInts,prompt):
+	#begin get_valid_int
+	while True:
+		userValue=input(prompt)
+		try:
+			userValue=int(userValue)
+		except ValueError:
+			print('Invalid Entry')
+			continue
+		if userValue not in validInts:
+			print('Invalid Entry')
+			if DEBUG:print(validInts)
+			continue
+		break
+	return userValue
+	#end get_valid_int
+
 def send_message():
 	#begin send_message
 	messageInfo=get_message_info(ADDRESSBOOK) #return (<keys>, <conversation ID>, <message>)
@@ -68,6 +85,8 @@ def setup_user():
 
 	#authenticate user func from Nathan, should return contents of user file
 	userData=menu()
+	if not DEBUG:print('\033[H\033[J') #clear login screen
+
 	'''
 	print('loading temp userFile',line_number())
 	file=open('userFile','r')
@@ -76,7 +95,7 @@ def setup_user():
 	'''
 	USER_KEYS=get_user_keys(userData[0].rstrip()) #*(publKey,privKey)*
 
-	print(len(userData),userData,line_number())
+	#print(len(userData),userData,line_number())
 
 	load_addressbook(userData[1:])
 	#end setup_user
@@ -96,22 +115,28 @@ def check_messages():
 	#decrypt and display messages
 	for message in messagesList:
 		print(decrypt_message(message,USER_KEYS))
+
+	while True:
+		choice=input('Finished? [y/n]: ')
+		choice=choice.lower()
+		if choice=='yes' or choice=='y':
+			break
 	#end check_messages
 
-def display_contacts():
+def display_contacts(addressbook):
 	#begin display_contacts
-	global ADDRESSBOOK
 	#display contents of addressbook to std out
 	count=1
 	print('\n Contacts')
-	for user in ADDRESSBOOK:
+	for user in addressbook:
 		print('\t%i. %s'%(count,user))
+		count+=1
 	print('')
 	#end display_contacts
 
 def add_contact():
 	#begin add_contact
-	print('add_contact under construction',line_number())
+	#print('add_contact under construction',line_number())
 	while True:
 		print('need to sanitize',line_number())
 		filePath=input('Path to contact card: ')
@@ -143,6 +168,15 @@ def add_contact():
 def remove_contact():
 	#begin remove_contact
 	print('remove_contact under construction',line_number())
+	global ADDRESSBOOK
+	validDict={}
+	index=1
+	for key in ADDRESSBOOK:
+		validDict[index]=key
+		index+=1
+	choice=get_valid_int([*validDict.keys()],'Selection: ')
+
+	ADDRESSBOOK.pop(validDict[choice])
 	#end remove_contact
 
 def update_user_file():
@@ -156,9 +190,10 @@ def edit_contacts():
 	print('edit_contacts under construction',line_number())
 
 	while True:
-		#print('\033[H\033[J')
+		if not DEBUG:print('\033[H\033[J')
+		global ADDRESSBOOK
 		#display contacts
-		display_contacts()
+		display_contacts(ADDRESSBOOK)
 
 		#display edit contacts menu
 		validOptions=[]
@@ -195,14 +230,15 @@ def edit_contacts():
 			add_contact()
 		elif choice==2:
 			remove_contact()
-
-			pass
 	#end edit_contacts
 
 def main_menu():
 	#begin main_menu
+	global ADDRESSBOOK
 	validOptions=[]
 	while True:
+		if not DEBUG:print('\033[H\033[J')
+		if not DEBUG:print('screen cleat blows out message print')
 		print('\n\t1. Check Messages');validOptions.append(1)
 		print('\t2. Send Message');validOptions.append(2)
 		print('\t3. Display Contacts');validOptions.append(3)
@@ -230,7 +266,7 @@ def main_menu():
 		elif choice==2:
 			send_message()
 		elif choice==3:
-			display_contacts()
+			display_contacts(ADDRESSBOOK)
 		elif choice==4:
 			edit_contacts()
 	#end main_menu
@@ -249,13 +285,14 @@ def start_blockchain():
 	#initialize and sync blockchain instance
 	#create instance
 	BLOCK=Tendermint()
-	pass
 	#end start_blockchain
 
 def main():
 	#begin main
 	global DEBUG
-	if argv[1].lower()=='debug': DEBUG=True
+	if len(argv)==2:
+		if argv[1].lower()=='debug': DEBUG=True
+	if not DEBUG:print('\033[H\033[J')
 	'''!!!!!SHOULD ONLY CONTAIN FUNCTION CALLS!!!!!'''
 	start_blockchain()
 	setup_user()
