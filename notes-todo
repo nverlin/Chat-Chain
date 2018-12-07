@@ -15,6 +15,11 @@ nathan:
 joso:
 	remove debug mode
 	screen clear wipes out display contacts
+	reserved words checking
+	add status check
+	destroy var in mem
+	fourth node on spare laptop
 
 mihn:
+	fourth node (joso will deploy)
 	
