@@ -43,7 +43,9 @@ def sanitize_input(inputString):
 
 def line_number():
 	#begin line_number
-	string='<%s>'%sys.argv[0]+'<ln:%i>'%inspect.currentframe().f_back.f_lineno
+	fileName=inspect.getfile(inspect.currentframe()).split('/')[-1]
+	lineNo=inspect.currentframe().f_back.f_lineno
+	string='<%s>'%fileName+'<ln:%i>'%lineNo
 	return string
 	#end line_number
 
@@ -183,12 +185,6 @@ def decrypt_message(messageDataHexString,userKeySet,debug):
 	return plainText #return plaintext from message
 	#end decrypt_message
 
-def check_messeges():
-	#begin check_messeges
-	print('check messages placeholder',line_number()) #todo
-	pass
-	#end check_messeges
-
 def get_recipients(addressbook):
 	#begin get_recipients
 	selections={}
@@ -230,15 +226,28 @@ def get_recipients(addressbook):
 	return (recipientKeys,numRecipients)
 	#end get_recipients
 
-def get_message_info(addressbook):
+def get_message_info(addressbook,reservedList):
 	#begin get_message_info
 	global VERBOSE #set variable to global scope
+
+	#get message recipients
 	recipients,numRecipients=get_recipients(addressbook)
-	conversationID=sanitize_input(input('\nConversation ID: ')) #get conversation ID from user
+
+	#get conversation ID from user
+	while True:
+		conversationID=sanitize_input(input('\nConversation ID: ')) 
+		for phrase in reservedList:
+			if phrase in conversationID:
+				print('Invalid Conversation ID, Please choose another')
+				continue
+		break
 	if VERBOSE:print('Echo Conversation ID:',conversationID,line_number()) #debugging output
-	message=sanitize_input(input('\nMessage: ')) #get message from user
+
+	#get message from user
+	message=sanitize_input(input('\nMessage: ')) 
 	if VERBOSE:print('Echo Message: ',message,line_number()) #debugging output
 	print('')
+
 	return (recipients,conversationID,message,numRecipients) #return tuple of message attributes
 	#end get_message_info
 

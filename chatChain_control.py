@@ -12,6 +12,7 @@ from time import sleep
 from user_account import *
 from store_and_sanitize import *
 from sys import argv
+from getpass import getpass
 
 #globals
 GREETING='Welcome to ChatChain'
@@ -20,10 +21,15 @@ USER_KEYS=None
 BLOCK=None
 DEBUG=False
 SKIP_CLEAR=False
+RESERVED_WORD_LIST_ID='reserved.id'
+ADDRESSBOOK_KEY_PREFIX='addressbook.'
+RESERVED_ID_LIST=['','account.','account@','addressbook@']+[ADDRESSBOOK_KEY_PREFIX]+[RESERVED_WORD_LIST_ID]
 
-def line_number():
+ef line_number():
 	#begin line_number
-	string='<%s>'%sys.argv[0]+'<ln:%i>'%inspect.currentframe().f_back.f_lineno
+	fileName=inspect.getfile(inspect.currentframe()).split('/')[-1]
+	lineNo=inspect.currentframe().f_back.f_lineno
+	string='<%s>'%fileName+'<ln:%i>'%lineNo
 	return string
 	#end line_number
 
@@ -46,33 +52,35 @@ def get_valid_int(validInts,prompt):
 
 def send_message():
 	#begin send_message
-	messageInfo=get_message_info(ADDRESSBOOK) #return (<keys>, <conversation ID>, <message>)
-	convoID=messageInfo[1]
-	if DEBUG:print(messageInfo,line_number())
-	messageDataHexString=build_message_data(messageInfo,USER_KEYS)
-	BLOCK.broadcast_tx_commit('%s=%s'%(convoID,messageDataHexString))
+	#check the status of the blockhain
+	if not BLOCK.get_status():print('Blockchain not ready');return
 
-	#delete after
-	'''
-	testhexstring1=''
-	
-	file=open('test','r')
-	testhexstring2=file.readline().rstrip()
-	file.close()
-	print(testhexstring1==testhexstring2,line_number())
-	'''
+	#get message information
+	messageInfo=get_message_info(ADDRESSBOOK,RESERVED_ID_LIST) #return (<keys>, <conversation ID>, <message>)
+	convoID=messageInfo[1]
+	if DEBUG:print('**',messageInfo,line_number())
+
+	#get message info ready and write to blockchain
+	messageDataHexString=build_message_data(messageInfo,USER_KEYS) #concat and encrypt
+	BLOCK.broadcast_tx_commit('%s=%s'%(convoID,messageDataHexString))#key=convoID value=messageDataHexString
 	#endsend_message
 
-def load_addressbook(addressbookData):
+def load_addressbook(userName):
 	#begin load_addressbook
-	global ADDRESSBOOK	
+	global ADDRESSBOOK
 
-	#print(len(addressbookData),addressbookData,line_number())
+	#get addressbook data from the blockchain
+	userAddressbookKey=ADDRESSBOOK_KEY_PREFIX+userName
+	addressbookData=BLOCK.get_message_blockchain(userAddressbookKey)
 
+	#parse data *[uName1,pubKey1@uname2,pubKey2]*
+	if not DEBUG:print('check deliniating chars')
+	addressbookData=addressbookData.split('@')
 	for datum in addressbookData:
 		datum=datum.rstrip().split(',')
 		#print('length:',len(datum[0]))
 
+		# add entries to addressbook
 		ADDRESSBOOK[datum[1]]=nacl.public.PublicKey(datum[0],encoder=nacl.encoding.HexEncoder)
 	#end load_addressbook
 
@@ -86,45 +94,50 @@ def setup_user():
 	#begin setup_user
 	global USER_KEYS
 
+	print('test, remove',line_number())
+	pswd=getpass('test,Password ')
+	print('pass:',pswd,type(pswd))
 	#authenticate user func from Nathan, should return contents of user file
-	userData=menu()
+	userData,userName=menu()
 	if not DEBUG:print('\033[H\033[J') #clear login screen
 
+	if not DEBUG: print('**test code to delete',line_number())
 	'''
 	print('loading temp userFile',line_number())
 	file=open('userFile','r')
 	userData=file.readlines()
 	file.close()
 	'''
-	USER_KEYS=get_user_keys(userData[0].rstrip()) #*(publKey,privKey)*
+	USER_KEYS=get_user_keys(userData.rstrip()) #*(publKey,privKey)*
 
-	#print(len(userData),userData,line_number())
-
-	load_addressbook(userData[1:])
+	#load the users addressbook
+	load_addressbook(userName)
 	#end setup_user
 
 def check_messages():
 	#begin check_messages
+	#check the status of the blockhain
+	if not BLOCK.get_status():print('Blockchain not ready');return
+
 	#get convoID from user
-	convoID=input('Conversation ID: ')
-	if DEBUG:print('need to sanitize',line_number())
+	while True:
+		convoID=input('Conversation ID: ')
+		if DEBUG:print('need to sanitize',line_number())
+		for word in RESERVED_WORD_LIST_ID:
+			if word in convoID:
+				print('Invalid Conversation ID, Please choose another')
+				continue
+		break
 
 	#query blockchain
 	messagesList=BLOCK.get_message_blockchain(convoID)
 	if DEBUG:print(messagesList,line_number())
 
-	if DEBUG:print('***for tessting only***',line_number())
-	#messagesList=messagesList[1:]
-
 	#decrypt and display messages
 	for message in messagesList:
 		print(decrypt_message(message,USER_KEYS,DEBUG))
 
-	while True:
-		choice=input('Finished? [y/n]: ')
-		choice=choice.lower()
-		if choice=='yes' or choice=='y':
-			break
+	input('Press Enter To Continue: ')
 	#end check_messages
 
 def display_contacts(addressbook):
@@ -288,10 +301,19 @@ def greet_user():
 def start_blockchain():
 	#begin start_blockchain
 	global BLOCK
-	#initialize and sync blockchain instance
 	#create instance
 	BLOCK=Tendermint()
+	if not BLOCK.get_status():
+		print(' Blockchain not up\n Exiting')
+		graceful_exit()
 	#end start_blockchain
+
+def graceful_exit():
+	#begin graceful_exit
+	if DEBUG:print('uncomment error handling',line_number())
+	if not DEBUG:print('\033[H\033[J')
+	exit()
+	#end graceful_exit
 
 def main():
 	#begin main
@@ -306,13 +328,6 @@ def main():
 	main_menu()
 	graceful_exit()
 	#end main
-
-def graceful_exit():
-	#begin graceful_exit
-	if DEBUG:print('uncomment error handling',line_number())
-	if not DEBUG:print('\033[H\033[J')
-	exit()
-	#end graceful_exit
 
 if __name__ == '__main__':
 	try:
