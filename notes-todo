@@ -19,6 +19,7 @@ joso:
 	add status check
 	destroy var in mem
 	fourth node on spare laptop
+	make update_user_file --> udpate_addressbook (on blockchain)
 
 mihn:
 	fourth node (joso will deploy)

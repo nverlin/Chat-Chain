@@ -150,9 +150,7 @@ def parse_message_bin(messageBin):
 
 def decrypt_message(messageDataHexString,userKeySet,debug):
 	#begin decrypt_message
-	print('***************************************************************************************************',line_number())
-	global VERBOSE #set variable to global scope
-	if debug:print('Decrypting_message',line_number()) #debug
+	if debug:print('**Decrypting_message',line_number()) #debug
 	messageDataBytes=binascii.unhexlify(messageDataHexString) #translate message data from hex to bytes
 	#if debug:print('unhex:',messageDataBytes==MESSAGE_TEST,line_number()) #debug
 	encryptedKeys,plaintextTimestamp,cipherText,numRecipients,senderPublicKey=parse_message_bin(messageDataBytes) #parse message into parts
@@ -165,22 +163,22 @@ def decrypt_message(messageDataHexString,userKeySet,debug):
 		try:
 			secretKey=decryptKeyBox.decrypt(each) #decrypt key
 			notAuthorized=False
-			print('good key',line_number())
+			# if debug:print('good key',line_number())
 		except:
-			print('bad key',line_number())
+			# if debug:print('bad key',line_number())
 			continue
-		if debug:print('len Decrypted key:',len(secretKey),type(secretKey),line_number()) #debug
+		# if debug:print('len Decrypted key:',len(secretKey),type(secretKey),line_number()) #debug
 		#print('check validity of test below',line_number()) #note
 		if len(secretKey)==32: 
 			secretBox=secret.SecretBox(secretKey) #make box for 
 			plainText=secretBox.decrypt(cipherText) #get bytes of plaintext
 			decryptedTimestamp=plainText[:26].decode() #extract timestamp from plaintext
-			if debug:print('timeStamp comparison:',decryptedTimestamp==plaintextTimestamp) #debug
+			if debug:print('**timeStamp comparison:',decryptedTimestamp==plaintextTimestamp,line_number()) #debug
 			if not decryptedTimestamp==plaintextTimestamp: #test for tampering
 				print('Timestamps dont match: Tampering detected') #std out
 				pass
 			plainText=plainText[:19].decode()+'(UTC) '+plainText[26:].decode() #truncate timestamp add space
-			if debug:print('plaintext:',plainText,line_number()) #debug
+			# if debug:print('plaintext:',plainText,line_number()) #debug
 	if notAuthorized:plainText=''
 	return plainText #return plaintext from message
 	#end decrypt_message
@@ -233,13 +231,16 @@ def get_message_info(addressbook,reservedList):
 	#get message recipients
 	recipients,numRecipients=get_recipients(addressbook)
 
-	#get conversation ID from user
+	#get conversation ID from user,
 	while True:
 		conversationID=sanitize_input(input('\nConversation ID: ')) 
+		#test if reserved
 		for phrase in reservedList:
 			if phrase in conversationID:
 				print('Invalid Conversation ID, Please choose another')
-				continue
+				skip=True
+				break
+		if skip:skip=False;continue
 		break
 	if VERBOSE:print('Echo Conversation ID:',conversationID,line_number()) #debugging output
 
