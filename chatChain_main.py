@@ -233,10 +233,14 @@ def get_message_info(addressbook,reservedList):
 
 	#get conversation ID from user,
 	while True:
+		skip=False
 		conversationID=sanitize_input(input('\nConversation ID: ')) 
+		
 		#test if reserved
+		if conversationID=='':continue
 		for phrase in reservedList:
 			if phrase in conversationID:
+				if VERBOSE:print('**word:',phrase,'convoID:',conversationID,line_number())
 				print('Invalid Conversation ID, Please choose another')
 				skip=True
 				break

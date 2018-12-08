@@ -122,6 +122,8 @@ def check_messages():
 		skip=False
 		convoID=input('Conversation ID: ')
 		if DEBUG:print('**need to sanitize',line_number())
+		
+		#test if reserved
 		if convoID=='':continue
 		for word in RESERVED_ID_LIST:
 			if word in convoID:
@@ -254,7 +256,7 @@ def edit_contacts():
 		#display edit contacts menu
 		validOptions=[]
 		options=[]
-		choicesDict={1:'test'}
+		# choicesDict={1:'test'}
 		print(' Edit contacts')
 		print('\t1. Add Contact');validOptions.append(1);options.insert(1,add_contact)
 		print('\t2. Remove Contact');validOptions.append(2);options.insert(2,remove_contact)
