@@ -61,7 +61,7 @@ class Tendermint(object):
         return self.call('broadcast_tx_commit', {'tx': tx})
 
     def broadcast_tx_sync(self,tx):
-	    return self.call('broadcast_tx_sync', {'tx': tx})
+	return self.call('broadcast_tx_sync', {'tx': tx})
 
     # Search indexed key value pair, indexing must be on
     def tx_search(self, query, prove, page, per_page):
