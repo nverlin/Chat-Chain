@@ -18,9 +18,9 @@ joso:
 	reserved words checking
 	add status check
 	destroy var in mem
-	fourth node on spare laptop
 	make update_user_file --> udpate_addressbook (on blockchain)
 
 mihn:
-	fourth node (joso will deploy)
+	fourth node 
+	lock down blockchain (no unauthorized writes from rogue scripts)
 	
