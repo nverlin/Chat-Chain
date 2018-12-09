@@ -48,13 +48,15 @@ class Tendermint(object):
 
     def info(self):
         return self.call('abci_info')
-
+	
     def netinfo(self):
         return self.call('net_info')
 
+    # Get genesis.json from node
     def genesis(self):
         return self.call('genesis')
 
+    # Commit key value pair to blockchain
     def broadcast_tx_commit(self,tx):
         return self.call('broadcast_tx_commit', {'tx': tx})
 
@@ -71,7 +73,6 @@ class Tendermint(object):
     def block(self,height):
         return self.call('block', {'height':height})
     
-    # Commit key value pair to blockchain
     def commit(self, height):
         return self.call('commit', {'height':height})
     
