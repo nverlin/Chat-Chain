@@ -43,7 +43,9 @@ def sanitize_input(inputString):
 
 def line_number():
 	#begin line_number
-	string='<%s>'%sys.argv[0]+'<ln:%i>'%inspect.currentframe().f_back.f_lineno
+	fileName=inspect.getfile(inspect.currentframe()).split('/')[-1]
+	lineNo=inspect.currentframe().f_back.f_lineno
+	string='<%s>'%fileName+'<ln:%i>'%lineNo
 	return string
 	#end line_number
 
@@ -148,9 +150,7 @@ def parse_message_bin(messageBin):
 
 def decrypt_message(messageDataHexString,userKeySet,debug):
 	#begin decrypt_message
-	print('***************************************************************************************************',line_number())
-	global VERBOSE #set variable to global scope
-	if debug:print('Decrypting_message',line_number()) #debug
+	if debug:print('**Decrypting_message',line_number()) #debug
 	messageDataBytes=binascii.unhexlify(messageDataHexString) #translate message data from hex to bytes
 	#if debug:print('unhex:',messageDataBytes==MESSAGE_TEST,line_number()) #debug
 	encryptedKeys,plaintextTimestamp,cipherText,numRecipients,senderPublicKey=parse_message_bin(messageDataBytes) #parse message into parts
@@ -163,31 +163,25 @@ def decrypt_message(messageDataHexString,userKeySet,debug):
 		try:
 			secretKey=decryptKeyBox.decrypt(each) #decrypt key
 			notAuthorized=False
-			print('good key',line_number())
+			# if debug:print('good key',line_number())
 		except:
-			print('bad key',line_number())
+			# if debug:print('bad key',line_number())
 			continue
-		if debug:print('len Decrypted key:',len(secretKey),type(secretKey),line_number()) #debug
+		# if debug:print('len Decrypted key:',len(secretKey),type(secretKey),line_number()) #debug
 		#print('check validity of test below',line_number()) #note
 		if len(secretKey)==32: 
 			secretBox=secret.SecretBox(secretKey) #make box for 
 			plainText=secretBox.decrypt(cipherText) #get bytes of plaintext
 			decryptedTimestamp=plainText[:26].decode() #extract timestamp from plaintext
-			if debug:print('timeStamp comparison:',decryptedTimestamp==plaintextTimestamp) #debug
+			if debug:print('**timeStamp comparison:',decryptedTimestamp==plaintextTimestamp,line_number()) #debug
 			if not decryptedTimestamp==plaintextTimestamp: #test for tampering
 				print('Timestamps dont match: Tampering detected') #std out
 				pass
 			plainText=plainText[:19].decode()+'(UTC) '+plainText[26:].decode() #truncate timestamp add space
-			if debug:print('plaintext:',plainText,line_number()) #debug
+			# if debug:print('plaintext:',plainText,line_number()) #debug
 	if notAuthorized:plainText=''
 	return plainText #return plaintext from message
 	#end decrypt_message
-
-def check_messeges():
-	#begin check_messeges
-	print('check messages placeholder',line_number()) #todo
-	pass
-	#end check_messeges
 
 def get_recipients(addressbook):
 	#begin get_recipients
@@ -230,15 +224,35 @@ def get_recipients(addressbook):
 	return (recipientKeys,numRecipients)
 	#end get_recipients
 
-def get_message_info(addressbook):
+def get_message_info(addressbook,reservedList):
 	#begin get_message_info
 	global VERBOSE #set variable to global scope
+
+	#get message recipients
 	recipients,numRecipients=get_recipients(addressbook)
-	conversationID=sanitize_input(input('\nConversation ID: ')) #get conversation ID from user
+
+	#get conversation ID from user,
+	while True:
+		skip=False
+		conversationID=sanitize_input(input('\nConversation ID: ')) 
+		
+		#test if reserved
+		if conversationID=='':continue
+		for phrase in reservedList:
+			if phrase in conversationID:
+				if VERBOSE:print('**word:',phrase,'convoID:',conversationID,line_number())
+				print('Invalid Conversation ID, Please choose another')
+				skip=True
+				break
+		if skip:skip=False;continue
+		break
 	if VERBOSE:print('Echo Conversation ID:',conversationID,line_number()) #debugging output
-	message=sanitize_input(input('\nMessage: ')) #get message from user
+
+	#get message from user
+	message=sanitize_input(input('\nMessage: ')) 
 	if VERBOSE:print('Echo Message: ',message,line_number()) #debugging output
 	print('')
+
 	return (recipients,conversationID,message,numRecipients) #return tuple of message attributes
 	#end get_message_info
 

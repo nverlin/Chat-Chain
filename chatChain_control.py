@@ -12,6 +12,7 @@ from time import sleep
 from user_account import *
 from store_and_sanitize import *
 from sys import argv
+from getpass import getpass
 
 #globals
 GREETING='Welcome to ChatChain'
@@ -20,10 +21,15 @@ USER_KEYS=None
 BLOCK=None
 DEBUG=False
 SKIP_CLEAR=False
+RESERVED_WORD_LIST_ID='reserved.id'
+ADDRESSBOOK_KEY_PREFIX='addressbook.'
+RESERVED_ID_LIST=['account.','account@','addressbook@']+[ADDRESSBOOK_KEY_PREFIX]+[RESERVED_WORD_LIST_ID]
 
 def line_number():
 	#begin line_number
-	string='<%s>'%sys.argv[0]+'<ln:%i>'%inspect.currentframe().f_back.f_lineno
+	fileName=inspect.getfile(inspect.currentframe()).split('/')[-1]
+	lineNo=inspect.currentframe().f_back.f_lineno
+	string='<%s>'%fileName+'<ln:%i>'%lineNo
 	return string
 	#end line_number
 
@@ -38,7 +44,7 @@ def get_valid_int(validInts,prompt):
 			continue
 		if userValue not in validInts:
 			print('Invalid Entry')
-			if DEBUG:print(validInts)
+			if DEBUG:print('**',validInts,line_number())
 			continue
 		break
 	return userValue
@@ -46,33 +52,35 @@ def get_valid_int(validInts,prompt):
 
 def send_message():
 	#begin send_message
-	messageInfo=get_message_info(ADDRESSBOOK) #return (<keys>, <conversation ID>, <message>)
-	convoID=messageInfo[1]
-	if DEBUG:print(messageInfo,line_number())
-	messageDataHexString=build_message_data(messageInfo,USER_KEYS)
-	BLOCK.broadcast_tx_commit('%s=%s'%(convoID,messageDataHexString))
+	#check the status of the blockhain
+	if not BLOCK.get_status():print('Blockchain not ready');return
 
-	#delete after
-	'''
-	testhexstring1=''
-	
-	file=open('test','r')
-	testhexstring2=file.readline().rstrip()
-	file.close()
-	print(testhexstring1==testhexstring2,line_number())
-	'''
+	#get message information
+	messageInfo=get_message_info(ADDRESSBOOK,RESERVED_ID_LIST) #return (<keys>, <conversation ID>, <message>)
+	convoID=messageInfo[1]
+	if DEBUG:print('**',messageInfo,line_number())
+
+	#get message info ready and write to blockchain
+	messageDataHexString=build_message_data(messageInfo,USER_KEYS) #concat and encrypt
+	BLOCK.broadcast_tx_commit('%s=%s'%(convoID,messageDataHexString))#key=convoID value=messageDataHexString
 	#endsend_message
 
-def load_addressbook(addressbookData):
+def load_addressbook(userName):
 	#begin load_addressbook
-	global ADDRESSBOOK	
+	global ADDRESSBOOK
 
-	#print(len(addressbookData),addressbookData,line_number())
+	#get addressbook data from the blockchain
+	userAddressbookKey=ADDRESSBOOK_KEY_PREFIX+userName
+	addressbookData=BLOCK.get_message_blockchain(userAddressbookKey)
 
+	#parse data *[uName1,pubKey1@uname2,pubKey2]*
+	if DEBUG:print('**check deliniating chars',line_number())
+	addressbookData=addressbookData.split('@')
 	for datum in addressbookData:
 		datum=datum.rstrip().split(',')
 		#print('length:',len(datum[0]))
 
+		# add entries to addressbook
 		ADDRESSBOOK[datum[1]]=nacl.public.PublicKey(datum[0],encoder=nacl.encoding.HexEncoder)
 	#end load_addressbook
 
@@ -87,44 +95,55 @@ def setup_user():
 	global USER_KEYS
 
 	#authenticate user func from Nathan, should return contents of user file
-	userData=menu()
+	userData,userName=menu()
 	if not DEBUG:print('\033[H\033[J') #clear login screen
 
+	if DEBUG: print('**test code to delete',line_number())
 	'''
 	print('loading temp userFile',line_number())
 	file=open('userFile','r')
 	userData=file.readlines()
 	file.close()
 	'''
-	USER_KEYS=get_user_keys(userData[0].rstrip()) #*(publKey,privKey)*
+	USER_KEYS=get_user_keys(userData.rstrip()) #*(publKey,privKey)*
 
-	#print(len(userData),userData,line_number())
-
-	load_addressbook(userData[1:])
+	#load the users addressbook
+	print('!!**load_addressbook disabled**!!',line_number())
+	# load_addressbook(userName)
 	#end setup_user
 
 def check_messages():
 	#begin check_messages
+	#check the status of the blockhain
+	if not BLOCK.get_status():print('Blockchain not ready');return
+
 	#get convoID from user
-	convoID=input('Conversation ID: ')
-	if DEBUG:print('need to sanitize',line_number())
+	while True:
+		skip=False
+		convoID=input('Conversation ID: ')
+		if DEBUG:print('**need to sanitize',line_number())
+		
+		#test if reserved
+		if convoID=='':continue
+		for word in RESERVED_ID_LIST:
+			if word in convoID:
+				if DEBUG:print('**word:',word,'convoID:',convoID,line_number())
+				print('Invalid Conversation ID, Please choose another')
+				skip=True
+				break
+		if skip:skip=False;continue
+		break
 
 	#query blockchain
 	messagesList=BLOCK.get_message_blockchain(convoID)
-	if DEBUG:print(messagesList,line_number())
-
-	if DEBUG:print('***for tessting only***',line_number())
-	#messagesList=messagesList[1:]
+	# if DEBUG:print('**',messagesList,line_number())
+	if DEBUG:print('**messages received:',len(messagesList),line_number())
 
 	#decrypt and display messages
 	for message in messagesList:
 		print(decrypt_message(message,USER_KEYS,DEBUG))
 
-	while True:
-		choice=input('Finished? [y/n]: ')
-		choice=choice.lower()
-		if choice=='yes' or choice=='y':
-			break
+	input('Press Enter To Continue: ')
 	#end check_messages
 
 def display_contacts(addressbook):
@@ -138,9 +157,26 @@ def display_contacts(addressbook):
 	print('')
 	#end display_contacts
 
+def display_directory():
+	#begin display_directory
+	if DEBUG:print('**display_contacts under construction',line_number())
+	#get directorydata from blockchain
+
+	#parse and store directory data
+
+	#display directory
+
+	#de-allocate directory
+
+	pass
+	#end display_directory
+
 def add_contact():
 	#begin add_contact
-	#print('add_contact under construction',line_number())
+	if DEBUG:print('**add_contact under construction',line_number())
+
+	if DEBUG:print('**add from directory option',line_number())
+
 	while True:
 		if DEBUG:print('need to sanitize',line_number())
 		filePath=input('Path to contact card: ')
@@ -157,21 +193,21 @@ def add_contact():
 
 	if DEBUG:
 		for x in range(len(splitPath)):
-			print('[%i] %s'%(x,splitPath[x]))
+			print('**[%i] %s'%(x,splitPath[x]),line_number())
 
-	if DEBUG:print('contactName:',contactName)
+	if DEBUG:print('**contactName:',contactName,line_number())
 
 
 	hexPubKey=file.readline().rstrip()
 	pubKey=nacl.public.PublicKey(hexPubKey,encoder=nacl.encoding.HexEncoder)
-	#if DEBUG:print(type(pubKey),line_number())
+	#if DEBUG:print('**',type(pubKey),line_number())
 	ADDRESSBOOK[contactName]=pubKey
 	file.close()
 	#end add_contact
 
 def remove_contact():
 	#begin remove_contact
-	if DEBUG:print('remove_contact under construction',line_number())
+	if DEBUG:print('**remove_contact under construction',line_number())
 	global ADDRESSBOOK
 	validDict={}
 	index=1
@@ -185,12 +221,27 @@ def remove_contact():
 
 def update_user_file():
 	#begn update_user_file
-	if DEBUG:print('update_user_file under construction',line_number())
+	if DEBUG:print('**update_user_file under construction',line_number())
+	'''
 	username=input('Username: ')
 	password=input('Password: ')
 
 	store_user(password,username,USER_KEYS[1],ADDRESSBOOK)
+	'''
 	#end update_user_file
+
+def save_changes():
+	#begin save_changes
+	while True:
+		save=input('Save changes? [y/n]: ')
+		if save.lower()=='y' or save.lower()=='yes':
+			update_user_file()
+			break
+		elif save.lower()=='n' or save.lower()=='no':
+			break
+		else:
+			save=None
+	#end save_changes
 
 def edit_contacts():
 	#begin edit_contacts
@@ -204,14 +255,19 @@ def edit_contacts():
 
 		#display edit contacts menu
 		validOptions=[]
-		choicesDict={1:'test'}
+		options=[]
+		# choicesDict={1:'test'}
 		print(' Edit contacts')
-		print('\t1. Add Contact');validOptions.append(1)
-		print('\t2. Remove Contact');validOptions.append(2)
+		print('\t1. Add Contact');validOptions.append(1);options.insert(1,add_contact)
+		print('\t2. Remove Contact');validOptions.append(2);options.insert(2,remove_contact)
 
-		print('\t0. Return To Main Menu');validOptions.append(0)
+		print('\t0. Return To Main Menu');validOptions.append(0);options.insert(0,save_changes)
 
 		#get user selection and validate
+		choice=get_valid_int(validOptions,'\n Selection: ')
+
+		if DEBUG:print('**remove after testing',line_number())
+		'''
 		while True:
 			try:
 				choice=int(input('\n Selection: '))
@@ -220,23 +276,20 @@ def edit_contacts():
 				continue
 			if choice not in validOptions:print('Invalid Entry');continue
 			break
+		'''
 
 		#call chosen function
+		options[choice]()
+
+		if DEBUG: print('**delete after testing',line_number())
+		'''
 		if choice==0:
-			while True:
-				save=input('Save changes? [y/n]: ')
-				if save.lower()=='y' or save.lower()=='yes':
-					update_user_file()
-					break
-				elif save.lower()=='n' or save.lower()=='no':
-					break
-				else:
-					save=None
-			return
+			save_changes()
 		elif choice==1:
 			add_contact()
 		elif choice==2:
 			remove_contact()
+		'''
 	#end edit_contacts
 
 def main_menu():
@@ -244,15 +297,20 @@ def main_menu():
 	global ADDRESSBOOK, SKIP_CLEAR
 	validOptions=[]
 	while True:
+		options=[]
 		if not DEBUG and not SKIP_CLEAR:print('\033[H\033[J');SKIP_CLEAR=False
-		print('\n\t1. Check Messages');validOptions.append(1)
-		print('\t2. Send Message');validOptions.append(2)
-		print('\t3. Display Contacts');validOptions.append(3)
-		print('\t4. Edit Contacts');validOptions.append(4)
+		print('\n\t1. Check Messages');validOptions.append(1);options.insert(1,check_messages)
+		print('\t2. Send Message');validOptions.append(2);options.insert(2,send_message)
+		print('\t3. Display Directory');validOptions.append(3);options.insert(3,display_directory)
+		print('\t4. Edit Contacts');validOptions.append(4);options.insert(4,edit_contacts)
 
-		print('\t0. Exit ChatChain\n');validOptions.append(0)
+		print('\t0. Exit ChatChain\n');validOptions.append(0);options.insert(0,graceful_exit)
 
 		#Get selection from user with validation
+		choice=get_valid_int(validOptions,' Selection: ')
+
+		if DEBUG:print('**delete after testing',line_number())
+		'''
 		while 1:
 			try:
 				choice=int(input(' Selection: '))
@@ -262,20 +320,30 @@ def main_menu():
 
 			if choice not in validOptions:print('Invalid Entry');continue
 			break
+		'''
+
+		#call function by choice
+		print('choice',choice,line_number())
+		if DEBUG:
+			for x in range(len(options)):
+				print('[%i]'%x,options[x])
+		options[choice]()
+
+		if DEBUG:print('**delete after testing',line_number())
 		
-		if choice==0:
-			print('\n Thank you for using ChatChain\n')
-			sleep(2)
+		'''
+		if choice==0:			
 			graceful_exit()
 		elif choice==1:
 			check_messages()
 		elif choice==2:
 			send_message()
 		elif choice==3:
-			display_contacts(ADDRESSBOOK)
+			display_directory()
 			SKIP_CLEAR=True
 		elif choice==4:
 			edit_contacts()
+		'''
 	#end main_menu
 
 def greet_user():
@@ -288,10 +356,21 @@ def greet_user():
 def start_blockchain():
 	#begin start_blockchain
 	global BLOCK
-	#initialize and sync blockchain instance
 	#create instance
 	BLOCK=Tendermint()
+	if not BLOCK.get_status():
+		print(' Blockchain not up\n Exiting')
+		graceful_exit()
 	#end start_blockchain
+
+def graceful_exit():
+	#begin graceful_exit
+	if DEBUG:print('**uncomment error handling in __main__',line_number())
+	print('\n Thank you for using ChatChain\n')
+	sleep(2)
+	if not DEBUG:print('\033[H\033[J')
+	exit()
+	#end graceful_exit
 
 def main():
 	#begin main
@@ -307,18 +386,11 @@ def main():
 	graceful_exit()
 	#end main
 
-def graceful_exit():
-	#begin graceful_exit
-	if DEBUG:print('uncomment error handling',line_number())
-	if not DEBUG:print('\033[H\033[J')
-	exit()
-	#end graceful_exit
-
 if __name__ == '__main__':
 	try:
 		main()
 	except KeyboardInterrupt:
-		print('User Shutdown')
+		print('\nUser Shutdown')
 		sleep(3)
 		graceful_exit()
 '''
