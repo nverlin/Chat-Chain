@@ -151,7 +151,11 @@ def parse_message_bin(messageBin):
 def decrypt_message(messageDataHexString,userKeySet,debug):
 	#begin decrypt_message
 	if debug:print('**Decrypting_message',line_number()) #debug
-	messageDataBytes=binascii.unhexlify(messageDataHexString) #translate message data from hex to bytes
+	try:
+		messageDataBytes=binascii.unhexlify(messageDataHexString) #translate message data from hex to bytes
+	except:
+		if debug:return '**plaintext message on blockchain <%i>'%messageDataHexString
+		return ''
 	#if debug:print('unhex:',messageDataBytes==MESSAGE_TEST,line_number()) #debug
 	encryptedKeys,plaintextTimestamp,cipherText,numRecipients,senderPublicKey=parse_message_bin(messageDataBytes) #parse message into parts
 
@@ -235,7 +239,7 @@ def get_message_info(addressbook,reservedList):
 	while True:
 		skip=False
 		conversationID=sanitize_input(input('\nConversation ID: ')) 
-		
+
 		#test if reserved
 		if conversationID=='':continue
 		for phrase in reservedList:

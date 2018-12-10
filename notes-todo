@@ -19,6 +19,8 @@ joso:
 	add status check
 	destroy var in mem
 	make update_user_file --> udpate_addressbook (on blockchain)
+	if addressbook empty send message stuck
+	
 
 mihn:
 	fourth node 
