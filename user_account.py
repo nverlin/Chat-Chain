@@ -13,6 +13,7 @@ from nacl.encoding import Base64Encoder
 from getpass import getpass
 from tendermint import Tendermint
 import binascii
+from chatChain_control import graceful_exit as g
 
 
 PAD = "^"
@@ -141,13 +142,23 @@ def login():
 def menu():
 
     while 1:
-        print("Account Creation - Please enter the number of your desired option")
-        choice = input("1. Create new account\n2. Login\n:")
+        print("Account Creation\n")
+        choice = input("\t1. Create new account\n\t2. Login\n\t0. Exit\n\nSelection (Ctrl+C to return):")
         if choice == "1":
-            create_new_account()
+            try:
+                create_new_account()
+            except KeyboardInterrupt:
+                print("\n")
+                continue
         elif choice == "2":
-            decrypted_text, username = login()
+            try:
+                decrypted_text, username = login()
+            except KeyboardInterrupt:
+                print("\n")
+                continue
             break
+        elif choice == "0":
+            g()
         else:
             print("Please enter a valid option")
 
