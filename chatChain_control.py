@@ -99,7 +99,7 @@ def load_addressbook(userName):
 
 def get_user_keys(keyString):
 	#begin get_user_keys
-	keySet=nacl.public.PrivateKey(keyString,encoder=nacl.encoding.HexEncoder)
+	keySet=nacl.public.PrivateKey(keyString)
 	return (keySet.public_key,keySet)
 	#end get_user_keys
 
@@ -107,9 +107,9 @@ def setup_user():
 	#begin setup_user
 	global USER_KEYS
 
-	#authenticate user func from Nathan, should return contents of user file
-	#key,userName=menu()
-	userName=menu()
+	#authenticate user func from Nathan, should return (keyBin,uname)
+	keyBin,userName=menu()
+
 	if not DEBUG:print('\033[H\033[J') #clear login screen
 
 	if DEBUG: print('**test code to delete',line_number())
@@ -119,7 +119,8 @@ def setup_user():
 	userData=file.readlines()
 	file.close()
 	'''
-	USER_KEYS=get_user_keys(userName[0].rstrip()) #*(publKey,privKey)*
+	USER_NAME=userName
+	USER_KEYS=get_user_keys(keyBin) #*(publKey,privKey)*
 
 	#load the users addressbook
 	print('!!**load_addressbook disabled**!!',line_number())
