@@ -142,7 +142,7 @@ def login():
 def menu():
 
     while 1:
-        print("Account Creation\n")
+        print("Login\n")
         choice = input("\t1. Create new account\n\t2. Login\n\t0. Exit\n\nSelection (Ctrl+C to return):")
         if choice == "1":
             try:
