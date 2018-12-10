@@ -13,6 +13,7 @@ from user_account import *
 from store_and_sanitize import *
 from sys import argv
 from getpass import getpass
+from os.path import expanduser
 
 #globals
 GREETING='Welcome to ChatChain'
@@ -320,7 +321,7 @@ def create_contact_card():
 	global USER_NAME
 	if DEBUG:print('**prints to working directory, need to make desktop, relative',line_number())
 
-	fileName='%s.card'%USER_NAME
+	fileName=expanduser('~/Desktop/')+'%s.card'%USER_NAME
 
 	try:
 		file=open(fileName,'w')
