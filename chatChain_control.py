@@ -400,7 +400,8 @@ def main_menu():
 	while True:
 		options=[]
 		if not DEBUG and not SKIP_CLEAR:print('\033[H\033[J');SKIP_CLEAR=False
-		print('\n\t1. Check Messages');validOptions.append(1);options.insert(1,check_messages)
+		print(' Main Menu\n')
+		print('\t1. Check Messages');validOptions.append(1);options.insert(1,check_messages)
 		print('\t2. Send Message');validOptions.append(2);options.insert(2,send_message)
 		print('\t3. Display Directory');validOptions.append(3);options.insert(3,display_directory)
 		print('\t4. Display Addressbook'),validOptions.append(4);options.insert(4,display_contacts)
