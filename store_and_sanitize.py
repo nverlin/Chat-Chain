@@ -47,7 +47,7 @@ def store_user(password, username, privateKey, address_book): # this can be call
     
 
     t = Tendermint()
-    t.broadcast_tx_commit("account.usernames=" + username) #all usernames
+    t.broadcast_tx_commit("global.directory=" + username + ','  + privateKey.public_key.encode(encoder=nacl.encoding.HexEncoder).decode()) #all usernames
     t.broadcast_tx_commit(key + value)
     
 

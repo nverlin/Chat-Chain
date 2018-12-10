@@ -20,7 +20,7 @@ PAD = "^"
 DELIMIETER = "~"
 LOGINCOUNT = 10
 
-def get_directory():
+def get_directory_menu():
     t = Tendermint()
     str_list = []
     for i in t.get_message_blockchain("account.usernames"):
@@ -56,7 +56,7 @@ def create_new_account():
         # print("Username is " + username)
 
         if len(username) < 21:                # username cannot be longer than 20 chars
-            if username in get_directory():
+            if username in get_directory_menu():
                 print("This username is already being used- please try a different one")
             else:
                 break
@@ -87,7 +87,7 @@ def login():
             input_password = getpass("Password: ")
             encrypted_text = b''
 
-            if input_username not in get_directory():
+            if input_username not in get_directory_menu():
                 print("Account does not exist - try again")
             else:
                 try:
