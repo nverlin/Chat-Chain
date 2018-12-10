@@ -8,6 +8,9 @@ import nacl.utils
 import nacl.pwhash
 import nacl.public
 import nacl.encoding
+from tendermint import Tendermint
+import binascii
+
 
 
 
@@ -17,11 +20,15 @@ def is_ascii(text):
 
 
 def store_user(password, username, privateKey, address_book): # this can be called a needed to update user
+   
     password = bytes(password.encode('ascii'))
     kdf = nacl.pwhash.argon2i.kdf
     salt_size = nacl.pwhash.argon2i.SALTBYTES
     salt = nacl.utils.random(salt_size)
-    key = kdf(nacl.secret.SecretBox.KEY_SIZE, password, salt)
+    ops = nacl.pwhash.argon2i.OPSLIMIT_SENSITIVE
+    mem = nacl.pwhash.argon2i.MEMLIMIT_SENSITIVE
+
+    key = kdf(nacl.secret.SecretBox.KEY_SIZE, password, salt, opslimit=ops, memlimit=mem)
 
     try:
         box = nacl.secret.SecretBox(key)
@@ -29,49 +36,21 @@ def store_user(password, username, privateKey, address_book): # this can be call
         print("Error: Key must be 32 bytes to be securely stored")
         return 1
 
-    concat_address_book = ''
-    for key, value in address_book.items():
-        concat_address_book += value.encode(encoder=nacl.encoding.HexEncoder).decode() + ',' + key + '\n'
-    encrypted = box.encrypt(bytes(privateKey) + bytes(concat_address_book.encode()))
 
-    with open(username, 'wb') as f:
-        f.write(salt + b'\n') # write salt then private key
-        f.write(encrypted)
+    encrypted_password = box.encrypt(password)
+    
+    encrypted_pk = box.encrypt(bytes(privateKey))
 
 
+    t = Tendermint()
+    t.broadcast_tx_commit("account.usernames=" + username) #all usernames
+    t.broadcast_tx_commit("password." + username + '=' + binascii.hexlify(encrypted_password).decode())
+    t.broadcast_tx_commit("account." + username + '=' + str(binascii.hexlify(encrypted_pk) + binascii.hexlify(salt))) 
 
+    with open("key." + username, 'w+') as f:
+        f.write(str(binascii.hexlify(encrypted_pk) + binascii.hexlify(salt)))
 
-########################################################################################################################
-# Function: arb_keygen(password)
-# Purpose: Given a password in string format, the function will generate and return a key and salt for that password
-# Notes: Used for testing purposes, although may be useful later
-# #####################################################################################################################
-
-
-def arb_keygen(password):
-    # Generate the key:
-    password = bytes(password.encode('ascii'))
-    kdf = nacl.pwhash.argon2i.kdf
-    salt_size = nacl.pwhash.argon2i.SALTBYTES
-    salt = nacl.utils.random(salt_size)
-    key = kdf(nacl.secret.SecretBox.KEY_SIZE, password, salt)
-    return key, salt
-
-
-########################################################################################################################
-# Function: test_suite()
-# Purpose: A test suite for this set of functions. Verifies that the key is the same after encryption and storage as it
-#   is before
-# Notes: None
-# #####################################################################################################################
-
-def test_suite():
-    try:
-        print("Removed Test Suite")
-
-    except Exception as e:
-        print(e)
-
+    
 
 def main():
     test_suite()

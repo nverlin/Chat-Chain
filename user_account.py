@@ -10,11 +10,22 @@ import nacl.pwhash
 import nacl.utils
 import nacl.secret
 from nacl.encoding import Base64Encoder
+from getpass import getpass
+from tendermint import Tendermint
+import binascii
+
 
 PAD = "^"
 DELIMIETER = "~"
 LOGINCOUNT = 10
 
+def get_directory():
+    t = Tendermint()
+    str_list = []
+    for i in t.get_message_blockchain("account.usernames"):
+        str_list.append(i.decode())
+    return str_list
+    
 
 def save_user(username, password, address_book):
 
@@ -24,13 +35,13 @@ def save_user(username, password, address_book):
 
     store_and_sanitize.store_user(password, username, privatek, address_book)
 
-    print("Business Card(saved on desktop)\nUsername:", username, "\nPublic Key: ", publick.encode(nacl.encoding.HexEncoder).decode())
+    # print("Business Card(saved on desktop)\nUsername:", username, "\nPublic Key: ", publick.encode(nacl.encoding.HexEncoder).decode())
 
-    desktop = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
+    # desktop = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
 
-    with open(desktop + '/' + username + '.card', 'w') as f:
-        f.write(publick.encode(nacl.encoding.HexEncoder).decode())
-        f.write('\n')
+    # with open(desktop + '/' + username + '.card', 'w') as f:
+    #     f.write(publick.encode(nacl.encoding.HexEncoder).decode())
+    #     f.write('\n')
 
 
 def build_address_list(text):
@@ -51,17 +62,16 @@ def create_new_account():
         # print("Username is " + username)
 
         if len(username) < 21:                # username cannot be longer than 20 chars
-            exists = os.path.isfile(username) #using os functions to check if user account already exists
-            if exists:
-                print("This username is already being used on this machine")
+            if username in get_directory():
+                print("This username is already being used- please try a different one")
             else:
                 break
         else:
             print('Username is too long. Please enter another')
 
     while 1:
-        password1 = input("Password(min 10 characters, max 20 characters): ")
-        password2 = input("Confirm Password: ")
+        password1 = getpass("Password(min 10 characters, max 20 characters): ")
+        password2 = getpass("Confirm Password: ")
 
         if password1 == password2 and len(password1) < 21 and len(password1) > 9:
             break
@@ -80,58 +90,59 @@ def login():
         flag = 0
         if login_counter < LOGINCOUNT:
             input_username = input("Username: ")
-            input_password = input("Password: ")
+            input_password = getpass("Password: ")
             encrypted_text = b''
 
-            try:
-                with open(input_username, 'rb') as f:
-                    encrypted_text = f.readlines()
+            if input_username not in get_directory():
+                print("Account does not exist - try again")
+            else:
+                try:
+                    with open("key." + input_username, "r") as f:
+                        encrypted_pk_list = f.read()
+                except:
+                    print("Missing user file")
+                    continue
+                
+                encrypted_pk = encrypted_pk_list[2:-1]
+            
 
-            except:
-                print("Invalid user name or password")
-                login_counter +=1
-                continue
+                salt = binascii.unhexlify(encrypted_pk[144:])
+                
+                just_encrypted_pk = binascii.unhexlify(encrypted_pk[:144])
+                             
+                input_password = bytes(input_password.encode('ascii'))
 
-            salt = encrypted_text[0]
-            salt = salt[:-1]
+                kdf = nacl.pwhash.argon2i.kdf
+                ops = nacl.pwhash.argon2i.OPSLIMIT_SENSITIVE
+                mem = nacl.pwhash.argon2i.MEMLIMIT_SENSITIVE
 
-            cipher = encrypted_text[1]
+                key = kdf(nacl.secret.SecretBox.KEY_SIZE, input_password, salt, opslimit=ops, memlimit=mem)
 
-            input_password = bytes(input_password.encode('ascii'))
+                try:
+                    box = nacl.secret.SecretBox(key)
+                except TypeError as e:
+                    print("Error: Key must be 32 bytes to be securely stored")
+                    return 1
 
-            kdf = nacl.pwhash.argon2i.kdf
+                try:
+                    decrypted_text = box.decrypt(just_encrypted_pk)
+                    flag = 1
+                except:
+                    print("Incorrect username or password. Try again")
+                    login_counter += 1
+                    continue
 
-            key = kdf(nacl.secret.SecretBox.KEY_SIZE, input_password, salt)
-
-            try:
-                box = nacl.secret.SecretBox(key)
-            except TypeError as e:
-                print("Error: Key must be 32 bytes to be securely stored")
-                return 1
-
-            try:
-                decrypted_text = box.decrypt(cipher)
-                flag = 1
-            except:
-                print("Incorrect username or password. Try again")
-                login_counter += 1
-                continue
-            if flag == 1:
-                break
+                if flag == 1:
+                    break
         else:
             print("Too many failed login attempts...Exiting Chat-Chain")
             return 1
 
-    privateKey = decrypted_text[:32]
-    
-    user_list.append(privateKey.hex())
+    if flag == 1:
+        print("Successful login")
+       
 
-    address_book_list = build_address_list(decrypted_text[32:])
-
-    for i in address_book_list:
-        user_list.append(i)
-
-    return user_list # this final list is in format ['dcfbdec6f5082805ef5b2f37689826291a2c431ed29838bd271f592ae7cbb513', '40bf496f0945cc1eaf11e00d11cefa434585ed181e8645046eaa8fc75030fc5,joe', etc]
+    return decrypted_text, input_username
 
 
 def menu():
