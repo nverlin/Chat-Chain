@@ -84,6 +84,8 @@ def send_message():
 	#get message info ready and write to blockchain
 	messageDataHexString=build_message_data(messageInfo,USER_KEYS,USER_NAME,DEBUG) #concat and encrypt
 	BLOCK.broadcast_tx_commit('%s=%s'%(convoID,messageDataHexString))#key=convoID value=messageDataHexString
+	print(' Message sent')
+	sleep(2)
 	#endsend_message
 
 def load_addressbook(userName):
@@ -145,7 +147,7 @@ def check_messages():
 	#get convoID from user
 	while True:
 		skip=False
-		convoID=input('Conversation ID: ')
+		convoID=input('\n Conversation ID: ')
 		if DEBUG:print('**need to sanitize',line_number())
 
 		#test if reserved
@@ -165,25 +167,27 @@ def check_messages():
 	if DEBUG:print('**messages received:',len(messagesList),line_number())
 
 	#decrypt and display messages
+	print('')
 	for message in messagesList:
 		plainMessage=decrypt_message(message,USER_KEYS,DEBUG)
 		if not plainMessage=='':
 			print(plainMessage)
 
 	#pause to let user read messages
-	input('Press Enter To Continue: ')
+	input('\n Enter To Return: ')
 	#end check_messages
 
-def display_contacts():
+def display_contacts(hold=True):
 	#begin display_contacts	
 	global ADDRESSBOOK
 	#print contents of addressbook to std out
 	count=1
-	print('\n Contacts')
+	print('\n Contacts\n')
 	for user in ADDRESSBOOK:
 		print('\t%i. %s'%(count,user))
 		count+=1
 	print('')
+	if hold:input('\n Enter To Return:')
 	#end display_contacts
 
 def get_directory():
@@ -216,6 +220,8 @@ def display_directory():
 
 	#de-allocate directory
 	directory=None
+
+	input('\n Enter To Return:')
 	#end display_directory
 
 def add_contact_from_card():
@@ -223,7 +229,7 @@ def add_contact_from_card():
 	#get path to card from user
 	while True:
 		if DEBUG:print('need to sanitize',line_number())
-		filePath=input('Path to contact card: ')
+		filePath=input('\n Path to contact card: ')
 
 		#open contact card
 		try:
@@ -257,7 +263,7 @@ def add_contact_from_directory():
 	validOptions=[0]
 	choice=9999
 	count=1
-	print(' Directory')
+	print('\n Directory\n')
 	for entry in directory:
 		print('\t%i. %s'%(count,entry))
 		validOptions+=[count]
@@ -265,6 +271,7 @@ def add_contact_from_directory():
 		count+=1
 
 	# get user selection and add entry
+	print('')
 	while True:
 		choice=get_valid_int(validOptions,' selection (0 to return): ')
 		if choice==0:
@@ -282,13 +289,13 @@ def add_contact():
 
 	#print add_contact menu and build options list
 	if not DEBUG:print('\033[H\033[J')
-	print(' Contact Source')
+	print(' Contact Source\n')
 	print('\t1. Directory');validOptions.append(1);options.insert(1,add_contact_from_directory)
 	print('\t2. Contact Card');validOptions.append(2);options.insert(2,add_contact_from_card)
-	print('\t0. Return To Previous Menu');validOptions.append(0);options.insert(0,do_nothing)
+	print('\t0. Return To Previous Menu\n');validOptions.append(0);options.insert(0,do_nothing)
 
 	#get user selection
-	choice=get_valid_int(validOptions,' Selection: ')
+	choice=get_valid_int(validOptions,'\n Selection: ')
 
 	#choose option
 	options[choice]()
@@ -309,7 +316,7 @@ def remove_contact():
 		index+=1
 
 	#get choice from user
-	choice=get_valid_int([*validDict.keys()],'Selection: ')
+	choice=get_valid_int([*validDict.keys()],'\n Selection: ')
 
 	#remove the user's choice
 	ADDRESSBOOK.pop(validDict[choice])
@@ -356,7 +363,7 @@ def create_contact_card():
 	file.close()
 
 	#report success to user
-	print('Contact card saved to desktop')
+	print('\n Contact card saved to desktop')
 	sleep(2)
 	#end create_contact_card
 
@@ -364,7 +371,7 @@ def save_changes():
 	#begin save_changes
 	#promt user if they want to save changes to addressbook
 	while True:
-		save=input('Save changes? [y/n]: ')
+		save=input('\n Save changes? [y/n]: ')
 		if save.lower()=='y' or save.lower()=='yes':
 			update_addressbook()
 			break
@@ -384,12 +391,12 @@ def edit_contacts():
 		global ADDRESSBOOK
 
 		#print contacts to std out
-		display_contacts()
+		display_contacts(False)
 
 		#display edit contacts menu and build list of options
 		validOptions=[]
 		options=[]
-		print(' Edit contacts')
+		print(' Edit contacts\n')
 		print('\t1. Add Contact');validOptions.append(1);options.insert(1,add_contact)
 		print('\t2. Remove Contact');validOptions.append(2);options.insert(2,remove_contact)
 		print('\t3. Create Contact Card');validOptions.append(3);options.insert(3,create_contact_card)
@@ -424,7 +431,7 @@ def main_menu():
 		choice=get_valid_int(validOptions,' Selection: ')
 
 		#call function by choice
-		print('choice',choice,line_number())
+		if  DEBUG:print('choice',choice,line_number())
 		if DEBUG:
 			for x in range(len(options)):
 				print('[%i]'%x,options[x])
@@ -433,9 +440,10 @@ def main_menu():
 
 def greet_user():
 	#begin greet_user
-	global GREETING #set var to global scope
-	print('\n',GREETING)
-	sleep(1)
+	global GREETING,SKIP_CLEAR #set var to global scope
+	print(' '+GREETING,'\n')
+	SKIP_CLEAR=True
+	#sleep(1)
 	#end greet_user
 
 def start_blockchain():

@@ -111,7 +111,7 @@ def build_message_data(messageDataPlainText,userKeys,userName,debug):
 	numRecipients=bytes([numRecipients])
 
 	#add sender username to message
-	print('uName:',userName,'\nMessage:',message)
+	if debug:print('uName:',userName,'\n Message:',message)
 	message=userName+': '+message
 
 	cipherTextkeyMsg,timeStamp,senderPubKeyHex=encrypt_message(message,recipients,userKeys,debug) #turn message into ciphertext, also creates timestamp
@@ -199,14 +199,14 @@ def get_recipients(addressbook,debug):
 	#get number of recipients from user
 	while 1:
 		try:
-			numRecipients=int(input('Number of Recipients: '))
+			numRecipients=int(input('\n Number of Recipients: '))
 		except ValueError:
 			print('Invalid Entry')
 			continue
 		break
 
 	#print the addressbook
-	print(' Contacts')
+	print(' Contacts\n')
 	for entry in addressbook:
 		print('\t%i. %s'%(count,entry))
 		validOptions.append(count)
@@ -214,10 +214,11 @@ def get_recipients(addressbook,debug):
 		count+=1
 
 	#choose recipients from addressbook
+	print('')
 	for x in range(numRecipients):
 		while 1:
 			try:
-				choice=int(input('Selection %i: '%(x+1)))
+				choice=int(input(' Selection %i: '%(x+1)))
 			except ValueError:
 				print('Invalid Entry')
 				continue
@@ -241,7 +242,7 @@ def get_message_info(addressbook,reservedList,debug):
 	#get conversation ID from user,
 	while True:
 		skip=False
-		conversationID=sanitize_input(input('\nConversation ID: ')) 
+		conversationID=sanitize_input(input('\n Conversation ID: ')) 
 
 		#test if reserved
 		if conversationID=='':continue

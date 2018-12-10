@@ -2,6 +2,8 @@
 !! erase after complete
 
 nathan:
+	clear the screen after user creation. see top of chatchain_control for code to clear
+
 	cant escape login, when call menu() should have option to exit program
 	for getting password use (from getpass import getpass) getpass('prompt: ') works same as input does not print chars 	to screen
 	menu() function should be made to return tuple (privateKeyHexString,userName)
@@ -20,7 +22,7 @@ joso:
 	destroy var in mem
 	make update_user_file --> udpate_addressbook (on blockchain)
 	if addressbook empty send message stuck
-	
+
 
 mihn:
 	fourth node 
