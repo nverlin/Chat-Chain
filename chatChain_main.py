@@ -21,16 +21,8 @@ import inspect
 #conversation ID to differentiate between conversations
 #public key encryption to encrypt the secret key
 
-#multi (later)
-#number at beginning = num recipients
-#encrypt key with each public key
-
-
-TODO List:
-	limit message size
-	limit user input size
-	move get input to func (<prompt>,<size>)-->get_user_input()-->()
-	decrypt message
+#number at end = num recipients
+#encrypt secret key with each public key
 '''
 
 #globals
@@ -49,45 +41,54 @@ def line_number():
 	return string
 	#end line_number
 
-def generate_timestamp():
+def generate_timestamp(debug):
 	#begin generate_timestamp
-	global VERBOSE
+	global VERBOSE #set var to global score
+	VERBOSE=debug
 	if VERBOSE:print('Generating_timestamp',line_number())
+
+	#get current time in UTC
 	stamp=datetime.utcnow()
 	if VERBOSE:print(stamp,line_number())
+
+	#return timestamp
 	return str(stamp)
 	#end generate_timestamp
 
-def generate_public_key_set():
+def generate_public_key_set(debug=False):
 	#begin generate_public_key_set
+	global VERBOSE
+	VERBOSE=debug
+	if VERBOSE:print('Generating keyset')
 	privKey=PrivateKey.generate() #generate private key
 	publKey=privKey.public_key #get public key	
 	return (publKey,privKey) #return key set
 	#end generate_public_key_set
 
-def encrypt_message(plaintextMessage,recipientsPublicKeys,userKeys):
+def encrypt_message(plaintextMessage,recipientsPublicKeys,userKeys,debug):
 	#begin encrypt_message
 	global VERBOSE #set variable to global scope
+	VERBOSE=debug
 	if VERBOSE:print('Encrypting_message',line_number()) #debugging output
 
 	secretKey=nacl.utils.random(nacl.secret.SecretBox.KEY_SIZE) #generate secret key
 	secretBox=nacl.secret.SecretBox(secretKey) #generate secret box
 
 	#TIMESTAMP
-	timeStamp=generate_timestamp() #get timestamp for message
+	timeStamp=generate_timestamp(debug) #get timestamp for message
 
 	messageBytes=(timeStamp+plaintextMessage).encode('ascii') #convert string to bytes
 	cipherText=secretBox.encrypt(messageBytes) #encrypt message
-	if VERBOSE:print('len of ciphertext:',len(cipherText),line_number())
+	if VERBOSE:print('len of ciphertext:',len(cipherText),line_number()) #debug
 
 	#encrypt secret key for sender get bytestring of hex of sender pubkey *(publKey,privKey)*
 	userPubKeyHex=userKeys[0].encode(encoder=nacl.encoding.HexEncoder) #make hex byte string of senders public key
 	if VERBOSE:print('len of pub key:',userPubKeyHex,len(userPubKeyHex),type(userPubKeyHex),line_number()) #debug
 	userBox=Box(userKeys[1],userKeys[0]) #make box to encrypt secret key for sender
 	secretKeyForSenderCiphertext=userBox.encrypt(secretKey) #encrypt key for sender
-	if VERBOSE:print('Encrypted key len:',len(secretKeyForSenderCiphertext),line_number())
+	if VERBOSE:print('Encrypted key len:',len(secretKeyForSenderCiphertext),line_number()) #debug
 
-	#use public keys of recipients to encrypt secret key (need to be made into for loop for multiple recipients)
+	#use public keys of recipients to encrypt secret key
 	secretKeyForRecipientCiphertext=b''
 	for recipKey in recipientsPublicKeys:
 		recvBox=Box(userKeys[1],recipKey) #make box to encrypt secret key for recipient
@@ -100,10 +101,11 @@ def encrypt_message(plaintextMessage,recipientsPublicKeys,userKeys):
 	return (cipherTextkeyMsg,timeStamp,userPubKeyHex) #return ciphertext and timestamp
 	#end encrypt_message
 
-def build_message_data(messageDataPlainText,userKeys,userName):
+def build_message_data(messageDataPlainText,userKeys,userName,debug):
 	#begin build_message_data
 	#messageDataPlainText = (recipient,conversationID,message)
-	global VERBOSE,MESSAGE_TEST #set variable to global scope
+	global VERBOSE #set variable to global scope
+	VERBOSE=debug
 	if VERBOSE:print('Building_message_block',line_number()) #debugging output
 	recipients,conversationID,message,numRecipients=messageDataPlainText #seperate tuple into individual variables
 	numRecipients=bytes([numRecipients])
@@ -112,20 +114,20 @@ def build_message_data(messageDataPlainText,userKeys,userName):
 	print('uName:',userName,'\nMessage:',message)
 	message=userName+': '+message
 
-	cipherTextkeyMsg,timeStamp,senderPubKeyHex=encrypt_message(message,recipients,userKeys) #turn message into ciphertext, also creates timestamp
+	cipherTextkeyMsg,timeStamp,senderPubKeyHex=encrypt_message(message,recipients,userKeys,debug) #turn message into ciphertext, also creates timestamp
 
 	timeStamp=timeStamp.encode('ascii') #encodes timestamp to be added in plaintext
 
 	#Concat and hex message data for sending
 	messageHexString=binascii.hexlify(cipherTextkeyMsg[0]+senderPubKeyHex+timeStamp+cipherTextkeyMsg[1]+numRecipients)
-	#print('numRecipients bin added:',numRecipients,line_number())
 
 	return messageHexString.decode()
 	#end build_message_data
 
-def parse_message_bin(messageBin):
+def parse_message_bin(messageBin,debug):
 	#begin parse_message_bin
 	global VERBOSE
+	VERBOSE=debug
 	if VERBOSE:print('\nParsing Message',line_number())
 
 	encryptedKeyList=[]
@@ -159,8 +161,7 @@ def decrypt_message(messageDataHexString,userKeySet,debug):
 	except:
 		if debug:return '**plaintext message on blockchain <%i>'%messageDataHexString
 		return ''
-	#if debug:print('unhex:',messageDataBytes==MESSAGE_TEST,line_number()) #debug
-	encryptedKeys,plaintextTimestamp,cipherText,numRecipients,senderPublicKey=parse_message_bin(messageDataBytes) #parse message into parts
+	encryptedKeys,plaintextTimestamp,cipherText,numRecipients,senderPublicKey=parse_message_bin(messageDataBytes,debug) #parse message into parts
 
 	userPublicKey,userPrivateKey=userKeySet #get user key set
 	decryptKeyBox=Box(userPrivateKey,senderPublicKey) #box for decryption of secret key
@@ -170,12 +171,9 @@ def decrypt_message(messageDataHexString,userKeySet,debug):
 		try:
 			secretKey=decryptKeyBox.decrypt(each) #decrypt key
 			notAuthorized=False
-			# if debug:print('good key',line_number())
 		except:
-			# if debug:print('bad key',line_number())
 			continue
-		# if debug:print('len Decrypted key:',len(secretKey),type(secretKey),line_number()) #debug
-		#print('check validity of test below',line_number()) #note
+
 		if len(secretKey)==32: 
 			secretBox=secret.SecretBox(secretKey) #make box for 
 			plainText=secretBox.decrypt(cipherText) #get bytes of plaintext
@@ -185,13 +183,14 @@ def decrypt_message(messageDataHexString,userKeySet,debug):
 				print('Timestamps dont match: Tampering detected') #std out
 				pass
 			plainText=plainText[:19].decode()+'(UTC) '+plainText[26:].decode() #truncate timestamp add space
-			# if debug:print('plaintext:',plainText,line_number()) #debug
+			if debug:print('**plaintext:',plainText,line_number()) #debug
 	if notAuthorized:plainText=''
 	return plainText #return plaintext from message
 	#end decrypt_message
 
-def get_recipients(addressbook):
+def get_recipients(addressbook,debug):
 	#begin get_recipients
+	if debug:print('getting recipients',line_number())
 	selections={}
 	count=1
 	validOptions=[]
@@ -231,12 +230,13 @@ def get_recipients(addressbook):
 	return (recipientKeys,numRecipients)
 	#end get_recipients
 
-def get_message_info(addressbook,reservedList):
+def get_message_info(addressbook,reservedList,debug):
 	#begin get_message_info
 	global VERBOSE #set variable to global scope
+	VERBOSE=debug
 
 	#get message recipients
-	recipients,numRecipients=get_recipients(addressbook)
+	recipients,numRecipients=get_recipients(addressbook,debug)
 
 	#get conversation ID from user,
 	while True:

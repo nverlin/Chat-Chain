@@ -32,6 +32,13 @@ USER_ACCOUNT_KEY_PREFIX='account.'
 USER_PASSWORD_KEY_PREFIX='password.'
 RESERVED_ID_LIST=[USER_ACCOUNT_KEY_PREFIX]+[USER_PASSWORD_KEY_PREFIX]+[ADDRESSBOOK_KEY_PREFIX]+[DIRECTORY_KEY]+[DIRECTORY_IGNORE_KEY_PREFIX]+[RESERVED_WORD_LIST_ID]
 
+print('TODO List: \
+	\n\tlimit message size \
+	\n\tlimit user input size \
+	\n\tmove get input to func (<prompt>,<size>)-->get_user_input()-->() \
+	\n\tinput testing with special chars \
+	')
+
 def line_number():
 	#begin line_number
 	fileName=inspect.getfile(inspect.currentframe()).split('/')[-1]
@@ -70,12 +77,12 @@ def send_message():
 	if not BLOCK.get_status():print('Blockchain not ready');return
 
 	#get message information
-	messageInfo=get_message_info(ADDRESSBOOK,RESERVED_ID_LIST) #return (<keys>, <conversation ID>, <message>)
+	messageInfo=get_message_info(ADDRESSBOOK,RESERVED_ID_LIST,DEBUG) #return (<keys>, <conversation ID>, <message>)
 	convoID=messageInfo[1]
 	if DEBUG:print('**',messageInfo,line_number())
 
 	#get message info ready and write to blockchain
-	messageDataHexString=build_message_data(messageInfo,USER_KEYS,USER_NAME) #concat and encrypt
+	messageDataHexString=build_message_data(messageInfo,USER_KEYS,USER_NAME,DEBUG) #concat and encrypt
 	BLOCK.broadcast_tx_commit('%s=%s'%(convoID,messageDataHexString))#key=convoID value=messageDataHexString
 	#endsend_message
 
