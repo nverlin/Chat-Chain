@@ -51,7 +51,7 @@ def store_user(password, username, privateKey, address_book): # this can be call
     with open("key." + username, 'w+') as f:
         f.write(str(binascii.hexlify(encrypted_pk) + binascii.hexlify(salt)))
 
-    
+    print("\nWelcome to ChatChain " + username)
 
 def main():
     test_suite()
