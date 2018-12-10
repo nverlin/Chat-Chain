@@ -17,8 +17,7 @@ from getpass import getpass
 #globals
 GREETING='Welcome to ChatChain'
 ADDRESSBOOK={}
-USER_NAME='joseph'
-print('**username is hardcoded',line_number())
+USER_NAME=None
 USER_KEYS=None #*(publKey,privKey)*
 BLOCK=None
 DEBUG=False
@@ -82,19 +81,29 @@ def load_addressbook(userName):
 	#begin load_addressbook
 	global ADDRESSBOOK
 
+	if DEBUG:print(userName);print(USER_NAME)
 	#get addressbook data from the blockchain
 	userAddressbookKey=ADDRESSBOOK_KEY_PREFIX+userName
 	addressbookData=BLOCK.get_message_blockchain(userAddressbookKey)
+
+	if DEBUG:print('addressbook:', len(addressbookData),addressbookData,line_number())
+
+	addressbookData=addressbookData[-1].decode()
+
+	if DEBUG:print(addressbookData,line_number())
 
 	#parse data *[uName1,pubKey1@uname2,pubKey2]*
 	if DEBUG:print('**check deliniating chars',line_number())
 	addressbookData=addressbookData.split('@')
 	for datum in addressbookData:
 		datum=datum.rstrip().split(',')
-		#print('length:',len(datum[0]))
+
+		if DEBUG:print(datum,line_number())
+
+		if DEBUG:print(datum[1],len(datum[1]),line_number())
 
 		# add entries to addressbook
-		ADDRESSBOOK[datum[1]]=nacl.public.PublicKey(datum[0],encoder=nacl.encoding.HexEncoder)
+		ADDRESSBOOK[datum[0]]=nacl.public.PublicKey(datum[1],encoder=nacl.encoding.HexEncoder)
 	#end load_addressbook
 
 def get_user_keys(keyString):
@@ -123,8 +132,8 @@ def setup_user():
 	USER_KEYS=get_user_keys(keyBin) #*(publKey,privKey)*
 
 	#load the users addressbook
-	print('!!**load_addressbook disabled**!!',line_number())
-	# load_addressbook(userName)
+	# print('!!**load_addressbook disabled**!!',line_number())
+	load_addressbook(userName)
 	#end setup_user
 
 def check_messages():
