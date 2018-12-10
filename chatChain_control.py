@@ -313,14 +313,26 @@ def update_addressbook():
 	#begn update_addressbook
 	if DEBUG:print('**update_addressbook under construction',line_number())
 	global USER_NAME
+	addressbookList=[]
 
+	# build string of addressbook to commit to blockchain
+	for userName,pubKey in zip(ADDRESSBOOK.keys(),ADDRESSBOOK.values()):
+		addressbookList.append(userName+','+pubKey.encode(encoder=nacl.encoding.HexEncoder).decode())
+
+	addressbookString=ADDRESSBOOK_KEY_PREFIX+USER_NAME+'='+'@'.join(addressbookList)
+
+	if DEBUG:print(addressbookString) #debug
+
+	#write to blockchain
+	BLOCK.broadcast_tx_commit(addressbookString)	
 	#end update_addressbook
 
 def create_contact_card():
 	#begin create_contact_card
 	global USER_NAME
-	if DEBUG:print('**prints to working directory, need to make desktop, relative',line_number())
+	if DEBUG:print('**prints to working directory, need to make desktop, relative',line_number()) #debug
 
+	#get filename and path to desktop
 	fileName=expanduser('~/Desktop/')+'%s.card'%USER_NAME
 
 	try:
@@ -333,6 +345,7 @@ def create_contact_card():
 	hexOfPubKey=USER_KEYS[0].encode(encoder=nacl.encoding.HexEncoder).decode()
 	if DEBUG:print('key=%s'%hexOfPubKey)
 
+	#write to file
 	file.write(hexOfPubKey)
 	file.close()
 
