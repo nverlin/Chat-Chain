@@ -44,7 +44,7 @@ def store_user(password, username, privateKey, address_book): # this can be call
 
     t = Tendermint()
     t.broadcast_tx_commit("account.usernames=" + username) #all usernames
-    t.broadcast_tx_commit("addressbook." + username + '=' + privateKey.public_key.encode(encoder=nacl.encoding.HexEncoder).decode())
+    t.broadcast_tx_commit("addressbook." + username + '=' + username + ',' + privateKey.public_key.encode(encoder=nacl.encoding.HexEncoder).decode())
     # t.broadcast_tx_commit("password." + username + '=' + binascii.hexlify(encrypted_password).decode())
     t.broadcast_tx_commit("account." + username + '=' + str(binascii.hexlify(encrypted_pk) + binascii.hexlify(salt))) 
 
