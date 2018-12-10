@@ -24,7 +24,7 @@ def get_directory_menu():
     t = Tendermint()
     str_list = []
     for i in t.get_message_blockchain("global.directory"):
-        str_list.append(i.decode())
+        str_list.append(i.decode().split(",")[0])
     return str_list
     
 
