@@ -35,13 +35,6 @@ def save_user(username, password, address_book):
 
     store_and_sanitize.store_user(password, username, privatek, address_book)
 
-    # print("Business Card(saved on desktop)\nUsername:", username, "\nPublic Key: ", publick.encode(nacl.encoding.HexEncoder).decode())
-
-    # desktop = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
-
-    # with open(desktop + '/' + username + '.card', 'w') as f:
-    #     f.write(publick.encode(nacl.encoding.HexEncoder).decode())
-    #     f.write('\n')
 
 
 def build_address_list(text):
@@ -153,12 +146,12 @@ def menu():
         if choice == "1":
             create_new_account()
         elif choice == "2":
-            user_list = login()
+            decrypted_text, username = login()
             break
         else:
             print("Please enter a valid option")
 
-    return user_list
+    return decrypted_txt, username
 
 
 def main():
