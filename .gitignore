@@ -3,3 +3,5 @@ tendermint/*
 *.bak
 *.pyc
 __pycache__/chatChain_main.cpython-36.pyc
+key.*
+test_*

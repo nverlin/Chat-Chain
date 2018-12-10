@@ -73,7 +73,7 @@ def send_message():
 	if DEBUG:print('**',messageInfo,line_number())
 
 	#get message info ready and write to blockchain
-	messageDataHexString=build_message_data(messageInfo,USER_KEYS) #concat and encrypt
+	messageDataHexString=build_message_data(messageInfo,USER_KEYS,USER_NAME) #concat and encrypt
 	BLOCK.broadcast_tx_commit('%s=%s'%(convoID,messageDataHexString))#key=convoID value=messageDataHexString
 	#endsend_message
 
@@ -114,7 +114,7 @@ def get_user_keys(keyString):
 
 def setup_user():
 	#begin setup_user
-	global USER_KEYS
+	global USER_KEYS,USER_NAME
 
 	#authenticate user func from Nathan, should return (keyBin,uname)
 	keyBin,userName=menu()
@@ -262,7 +262,7 @@ def add_contact_from_directory():
 
 	# get user selection and add entry
 	while True:
-		choice=get_valid_int(validOptions,' selection (0 to exit): ')
+		choice=get_valid_int(validOptions,' selection (0 to return): ')
 		if choice==0:
 			break
 		ADDRESSBOOK[optionsDict[choice]]=directory[optionsDict[choice]]

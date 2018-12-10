@@ -100,14 +100,17 @@ def encrypt_message(plaintextMessage,recipientsPublicKeys,userKeys):
 	return (cipherTextkeyMsg,timeStamp,userPubKeyHex) #return ciphertext and timestamp
 	#end encrypt_message
 
-def build_message_data(messageDataPlainText,userKeys):
+def build_message_data(messageDataPlainText,userKeys,userName):
 	#begin build_message_data
 	#messageDataPlainText = (recipient,conversationID,message)
 	global VERBOSE,MESSAGE_TEST #set variable to global scope
 	if VERBOSE:print('Building_message_block',line_number()) #debugging output
 	recipients,conversationID,message,numRecipients=messageDataPlainText #seperate tuple into individual variables
 	numRecipients=bytes([numRecipients])
-	#numRecipients=bytes([NUMBER_OF_RECIPIENTS]) #make user definable later
+
+	#add sender username to message
+	print('uName:',userName,'\nMessage:',message)
+	message=userName+': '+message
 
 	cipherTextkeyMsg,timeStamp,senderPubKeyHex=encrypt_message(message,recipients,userKeys) #turn message into ciphertext, also creates timestamp
 
