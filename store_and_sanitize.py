@@ -42,14 +42,20 @@ def store_user(password, username, privateKey, address_book): # this can be call
     encrypted_pk = box.encrypt(bytes(privateKey))
 
 
+    key = "addressbook." + username 
+    value = '=' + username + ',' + privateKey.public_key.encode(encoder=nacl.encoding.HexEncoder).decode()
+    
+
     t = Tendermint()
     t.broadcast_tx_commit("account.usernames=" + username) #all usernames
-    t.broadcast_tx_commit("addressbook." + username + '=' + username + ',' + privateKey.public_key.encode(encoder=nacl.encoding.HexEncoder).decode())
-    # t.broadcast_tx_commit("password." + username + '=' + binascii.hexlify(encrypted_password).decode())
-    t.broadcast_tx_commit("account." + username + '=' + str(binascii.hexlify(encrypted_pk) + binascii.hexlify(salt))) 
+    t.broadcast_tx_commit(key + value)
+    
 
     with open("key." + username, 'w+') as f:
         f.write(str(binascii.hexlify(encrypted_pk) + binascii.hexlify(salt)))
+
+    # print(t.get_message_blockchain("addressbook." + username))
+
 
     print("\nWelcome to ChatChain " + username)
 
