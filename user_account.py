@@ -151,7 +151,7 @@ def menu():
         else:
             print("Please enter a valid option")
 
-    return decrypted_txt, username
+    return decrypted_text, username
 
 
 def main():
