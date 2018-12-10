@@ -23,7 +23,7 @@ LOGINCOUNT = 10
 def get_directory_menu():
     t = Tendermint()
     str_list = []
-    for i in t.get_message_blockchain("account.usernames"):
+    for i in t.get_message_blockchain("global.directory"):
         str_list.append(i.decode())
     return str_list
     
