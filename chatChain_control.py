@@ -142,7 +142,6 @@ def check_messages():
 	while True:
 		skip=False
 		convoID=input('\n Conversation ID: ')
-		if DEBUG:print('**need to sanitize',line_number())
 
 		#test if reserved
 		if convoID=='':continue
@@ -223,7 +222,6 @@ def add_contact_from_card():
 	#begin add_contact_from_card
 	#get path to card from user
 	while True:
-		if DEBUG:print('need to sanitize',line_number())
 		filePath=input('\n Path to contact card: ')
 
 		#open contact card
