@@ -24,7 +24,6 @@ import inspect
 #number at end = num recipients
 #encrypt secret key with each public key
 '''
-
 #globals
 VERBOSE=False
 ALLOWED_CHARS='abcdefghijklmnopqrstuvwxyz\
