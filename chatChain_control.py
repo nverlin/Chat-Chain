@@ -1,7 +1,7 @@
 # Author: Joseph Soares
 # file: chatChain_control.py
 # purpose: contains main control loop for program
-# invoke: python3 chatChain_control.py
+# invoke: python3 chatChain_control.py [<debug>]
 
 #print('\033[H\033[J') #clear console
 
@@ -23,6 +23,7 @@ USER_KEYS=None #*(publKey,privKey)*
 BLOCK=None
 DEBUG=False
 SKIP_CLEAR=False
+
 #reserved words
 RESERVED_WORD_LIST_ID='reserved.id'
 ADDRESSBOOK_KEY_PREFIX='addressbook.'
@@ -31,13 +32,6 @@ DIRECTORY_IGNORE_KEY_PREFIX='ignore.'
 USER_ACCOUNT_KEY_PREFIX='account.'
 USER_PASSWORD_KEY_PREFIX='password.'
 RESERVED_ID_LIST=[USER_ACCOUNT_KEY_PREFIX]+[USER_PASSWORD_KEY_PREFIX]+[ADDRESSBOOK_KEY_PREFIX]+[DIRECTORY_KEY]+[DIRECTORY_IGNORE_KEY_PREFIX]+[RESERVED_WORD_LIST_ID]
-
-print('TODO List: \
-	\n\tlimit message size \
-	\n\tlimit user input size \
-	\n\tmove get input to func (<prompt>,<size>)-->get_user_input()-->() \
-	\n\tinput testing with special chars \
-	')
 
 def line_number():
 	#begin line_number

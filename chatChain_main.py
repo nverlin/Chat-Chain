@@ -27,11 +27,18 @@ import inspect
 
 #globals
 VERBOSE=False
+ALLOWED_CHARS='abcdefghijklmnopqrstuvwxyz\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+0123456789'
 
-def sanitize_input(inputString):
-	#begin sanitize_input
-	return inputString
-	#end sanitize_input
+def sanitize_ID(idString):
+	#begin sanitize_ID
+	for char in idString:
+		if not char in ALLOWED_CHARS:
+			print('Invalid Character:',char)
+			return False
+	return idString
+	#end sanitize_ID
 
 def line_number():
 	#begin line_number
@@ -103,7 +110,6 @@ def encrypt_message(plaintextMessage,recipientsPublicKeys,userKeys,debug):
 
 def build_message_data(messageDataPlainText,userKeys,userName,debug):
 	#begin build_message_data
-	#messageDataPlainText = (recipient,conversationID,message)
 	global VERBOSE #set variable to global scope
 	VERBOSE=debug
 	if VERBOSE:print('Building_message_block',line_number()) #debugging output
@@ -242,7 +248,8 @@ def get_message_info(addressbook,reservedList,debug):
 	#get conversation ID from user,
 	while True:
 		skip=False
-		conversationID=sanitize_input(input('\n Conversation ID: ')) 
+		conversationID=sanitize_ID(input('\n Conversation ID: '))
+		if not conversationID:continue
 
 		#test if reserved
 		if conversationID=='':continue
@@ -257,7 +264,7 @@ def get_message_info(addressbook,reservedList,debug):
 	if VERBOSE:print('Echo Conversation ID:',conversationID,line_number()) #debugging output
 
 	#get message from user
-	message=sanitize_input(input('\nMessage: ')) 
+	message=input('\nMessage: ')
 	if VERBOSE:print('Echo Message: ',message,line_number()) #debugging output
 	print('')
 
