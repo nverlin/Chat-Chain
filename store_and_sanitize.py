@@ -1,7 +1,7 @@
 # Nate Verlin
 # ChatChain
 # File: store_and_sanitize.py
-# This file is designed to provide some basic utility functions for the chat chain program.
+# This file contains the store user function that is responsible for storing the user to both the disk and the blockchain
 
 import nacl.secret
 import nacl.utils
@@ -14,12 +14,7 @@ import os
 
 
 
-
-def is_ascii(text):
-    return all(ord(c) < 128 for c in text)
-
-
-def store_user(password, username, privateKey, address_book): # this can be called a needed to update user
+def store_user(password, username, privateKey, address_book): # kdfs the private key, saves it, adds user to directory on block chain, creates address book, greets user
     print("Creating...")
     password = bytes(password.encode('ascii'))
     kdf = nacl.pwhash.argon2i.kdf
