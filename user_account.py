@@ -30,7 +30,7 @@ def get_directory_menu():
 
 def save_user(username, password, address_book):
 
-    publick, privatek = chatChain_main.generate_public_key_set()  # inital private and public key gen
+    publick, privatek = chatChain_main.generate_public_key_set()                     # inital private and public key gen
 
     address_book[username] = publick
 
@@ -40,22 +40,20 @@ def save_user(username, password, address_book):
 
 def build_address_list(text):
     address_list = []
-    # print(text)
     if text is None:
         return address_list
     else:
         split_text = text.decode().split('\n')
-        # print(split_text[:-1])
         address_list = split_text[:-1]
         return address_list
 
 
 def create_new_account():
     while 1:
-        username = input("Enter your desired username (max 20 characters): ") #check for duplicate usernames
-        # print("Username is " + username)
+        username = input("Enter your desired username (max 20 characters): ")       #check for duplicate usernames
+        
 
-        if len(username) < 21:                # username cannot be longer than 20 chars
+        if len(username) < 21:                                                      # username cannot be longer than 20 chars
             if username in get_directory_menu():
                 print("This username is already being used- please try a different one")
             else:
@@ -74,6 +72,8 @@ def create_new_account():
 
     save_user(username, password1, {})
 
+    
+
 
 def login():
     user_list = []
@@ -91,7 +91,7 @@ def login():
                 print("Account does not exist - try again")
             else:
                 try:
-                    with open("key." + input_username, "r") as f:
+                    with open(".key." + input_username, "r") as f:
                         encrypted_pk_list = f.read()
                 except:
                     print("Missing user file")
@@ -139,7 +139,7 @@ def login():
     return decrypted_text, input_username
 
 
-def menu():
+def menu(): #the menu for account management
 
     while 1:
         print("Login\n")
