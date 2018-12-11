@@ -12,9 +12,9 @@ import inspect
 
 #message breakdown
 '''
-# |                             bytes                                |    ciphertext     |    bytes    |
-# | rx_encrypted_key | tx_encrypted_key | tx_pub_key_hex | timestamp | timestamp+message | #recipients |
-# |        72        |        72        |       64       |     26    |     variable      |      8      |
+# |                             bytes                                |            ciphertext             |    bytes    |
+# | rx_encrypted_key | tx_encrypted_key | tx_pub_key_hex | timestamp | timestamp | tx_username | message | #recipients |
+# |        72        |        72        |       64       |     26    |     26    |       variable        |      8      |
 
 #encrypted keys bytes = (#recipients+1) * 72       # +1 is for the sender
 
