@@ -61,10 +61,10 @@ def get_valid_int(validInts,prompt):
 		try:
 			userValue=int(userValue)
 		except ValueError:
-			print('Invalid Entry')
+			print(' *Invalid Entry')
 			continue
 		if userValue not in validInts:
-			print('Invalid Entry')
+			print(' *Invalid Entry')
 			if DEBUG:print('**',validInts,line_number())
 			continue
 		break
@@ -155,7 +155,7 @@ def check_messages():
 		for word in RESERVED_ID_LIST:
 			if word in convoID:
 				if DEBUG:print('**word:',word,'convoID:',convoID,line_number())
-				print('Invalid Conversation ID, Please choose another')
+				print(' *Invalid Conversation ID, Please choose another')
 				skip=True
 				break
 		if skip:skip=False;continue
@@ -167,7 +167,8 @@ def check_messages():
 	if DEBUG:print('**messages received:',len(messagesList),line_number())
 
 	#decrypt and display messages
-	print('')
+	print('\033[H\033[J') #clear console
+	print('Conversation: %s\n'%convoID)
 	for message in messagesList:
 		plainMessage=decrypt_message(message,USER_KEYS,DEBUG)
 		if not plainMessage=='':
@@ -418,6 +419,7 @@ def main_menu():
 		options=[]
 		#print main menu and build list of options
 		if not DEBUG and not SKIP_CLEAR:print('\033[H\033[J');SKIP_CLEAR=False
+		if SKIP_CLEAR:SKIP_CLEAR=False
 		print(' Main Menu\n')
 		print('\t1. Check Messages');validOptions.append(1);options.insert(1,check_messages)
 		print('\t2. Send Message');validOptions.append(2);options.insert(2,send_message)
