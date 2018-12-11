@@ -20,7 +20,7 @@ def is_ascii(text):
 
 
 def store_user(password, username, privateKey, address_book): # this can be called a needed to update user
-   
+    print("Creating...")
     password = bytes(password.encode('ascii'))
     kdf = nacl.pwhash.argon2i.kdf
     salt_size = nacl.pwhash.argon2i.SALTBYTES

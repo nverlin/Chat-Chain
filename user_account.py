@@ -14,11 +14,40 @@ from getpass import getpass
 from tendermint import Tendermint
 import binascii
 from chatChain_control import graceful_exit as g
+from chatChain_control import get_directory 
 
 
 PAD = "^"
 DELIMIETER = "~"
 LOGINCOUNT = 10
+
+
+def authorizeFile(pk, uname):
+    directory = get_dir_dict()
+    
+    correct_key = directory[uname]
+
+    p = nacl.public.PrivateKey(pk)
+    
+    if correct_key == p.public_key:
+        return 0
+    else:
+        return 1
+
+    
+def get_dir_dict():
+    directoryDict={}
+    t = Tendermint()
+    #get directory entries from blockchain and make dictionary
+    directoryList=t.get_message_blockchain('global.directory')
+    for entry in directoryList:
+        key,value=entry.decode().split(',')
+        value=nacl.public.PublicKey(value,encoder=nacl.encoding.HexEncoder)
+        directoryDict[key]=value
+
+    #return dictionary of directory
+    return directoryDict
+
 
 def get_directory_menu():
     t = Tendermint()
@@ -35,6 +64,7 @@ def save_user(username, password, address_book):
     address_book[username] = publick
 
     store_and_sanitize.store_user(password, username, privatek, address_book)
+
 
 
 
@@ -86,6 +116,7 @@ def login():
             input_username = input("Username: ")
             input_password = getpass("Password: ")
             encrypted_text = b''
+            print("Loading...")
 
             if input_username not in get_directory_menu():
                 print("Account does not exist - try again")
@@ -97,14 +128,22 @@ def login():
                     print("Missing user file")
                     continue
                 
-                encrypted_pk = encrypted_pk_list[2:-1]
-            
+                try:
+                    encrypted_pk = encrypted_pk_list[2:-1]
+                except:
+                    print("Corrupt user file - Exiting 1")
+                    g()
 
-                salt = binascii.unhexlify(encrypted_pk[144:])
-                
-                just_encrypted_pk = binascii.unhexlify(encrypted_pk[:144])
-                             
-                input_password = bytes(input_password.encode('ascii'))
+                try:    
+                    salt = binascii.unhexlify(encrypted_pk[144:])
+                    
+                    just_encrypted_pk = binascii.unhexlify(encrypted_pk[:144])
+                                 
+                    input_password = bytes(input_password.encode('ascii'))
+                except:
+                    print("Invalid user file - Exiting")
+                    g()
+
 
                 kdf = nacl.pwhash.argon2i.kdf
                 ops = nacl.pwhash.argon2i.OPSLIMIT_SENSITIVE
@@ -125,6 +164,15 @@ def login():
                     print("Incorrect username or password. Try again")
                     login_counter += 1
                     continue
+
+                try:
+                    if authorizeFile(decrypted_text, input_username) == 1: #bad file
+                        print("Corrupted user file - Exiting 2")
+                        g()
+                except:
+                    raise 
+                    print("Corrupted Key File - Exiting 3\n")
+                    g()
 
                 if flag == 1:
                     break
