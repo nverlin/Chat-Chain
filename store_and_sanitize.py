@@ -10,11 +10,11 @@ import nacl.public
 import nacl.encoding
 from tendermint import Tendermint
 import binascii
+import os
 
 
 
 
-# Simple function to check if a input is ascii
 def is_ascii(text):
     return all(ord(c) < 128 for c in text)
 
@@ -51,12 +51,11 @@ def store_user(password, username, privateKey, address_book): # this can be call
     t.broadcast_tx_commit(key + value)
     
 
-    with open("key." + username, 'w+') as f:
+    with open(".key." + username, 'w+') as f:
         f.write(str(binascii.hexlify(encrypted_pk) + binascii.hexlify(salt)))
+    os.chmod(".key." + username, 0o400) 
 
-    # print(t.get_message_blockchain("addressbook." + username))
-
-
+    print('\033[H\033[J')    
     print("\nWelcome to ChatChain " + username)
 
 def main():
