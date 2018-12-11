@@ -484,7 +484,5 @@ if __name__ == '__main__':
 		print('\nUser Shutdown')
 		sleep(3)
 		graceful_exit()
-'''
 	except:
 		graceful_exit()
-'''
