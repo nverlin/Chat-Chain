@@ -5,3 +5,4 @@ tendermint/*
 __pycache__/chatChain_main.cpython-36.pyc
 key.*
 test_*
+.key*
